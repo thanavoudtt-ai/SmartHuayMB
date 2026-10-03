@@ -2,6 +2,7 @@
 <html lang="lo">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700;800&display=swap');
 *{box-sizing:border-box}html,body{margin:0;width:100%;max-width:100%;overflow-x:hidden;background:#f5f7fb;font-family:"Noto Sans Lao",sans-serif;color:#172033;touch-action:pan-y}
@@ -589,6 +590,41 @@ body.dark .primary{color:#fff!important}
 .receipt .rbrandSub{color:#e7f6f5!important;-webkit-text-fill-color:#e7f6f5!important}
 .receipt .rbillid{color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:900!important;border-color:#e7bc45!important;background:rgba(4,55,63,.45)!important;text-shadow:0 1px 2px rgba(0,0,0,.18)!important}
 </style>
+
+<style id="v5-mobile-cloudflare-fix">
+/* v5.0: mobile sizing for static hosts (Cloudflare Pages/GitHub Pages) */
+@media (max-width: 600px){
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  body{font-size:16px;}
+  .app{max-width:none!important;width:100%!important;padding:12px 12px calc(92px + env(safe-area-inset-bottom))!important;}
+  .top{min-height:68px!important;height:auto!important;padding:10px 4px!important;margin:0 0 10px!important;}
+  .brandIcon{width:42px!important;height:42px!important;flex:0 0 42px!important;}
+  .brand{font-size:21px!important;line-height:1.15!important;}
+  .brandSub{font-size:11px!important;display:block!important;}
+  .badge{font-size:12px!important;padding:7px 9px!important;}
+  .pageHero{margin:4px 2px 12px!important;gap:10px!important;}
+  .pageHero h1{font-size:22px!important;}
+  .pageHero p{font-size:13px!important;}
+  .heroIcon{width:42px!important;height:42px!important;flex:0 0 42px!important;}
+  .card,.billcard{padding:15px!important;border-radius:18px!important;margin-bottom:10px!important;}
+  label{font-size:15px!important;}
+  input,select{min-height:50px!important;font-size:16px!important;padding:11px 12px!important;}
+  .seg button,.agentButtons button,.quick button,.btn{min-height:48px!important;font-size:15px!important;}
+  .quick{gap:5px!important;}
+  .quick button{font-size:13px!important;padding:0 4px!important;}
+  .num{font-size:20px!important}.muted{font-size:13px!important}.total strong{font-size:24px!important;}
+  .nav{max-width:none!important;padding:6px 6px max(7px,env(safe-area-inset-bottom))!important;}
+  .nav button{min-height:60px!important;font-size:11px!important;}
+  .navIcon{height:23px!important;}
+  .sheet{max-width:calc(100vw - 20px)!important;padding:16px 12px max(16px,env(safe-area-inset-bottom))!important;}
+}
+@media (max-width: 360px){
+  .app{padding-left:9px!important;padding-right:9px!important;}
+  .brand{font-size:19px!important}.brandSub{font-size:10px!important;}
+  .quick{grid-template-columns:repeat(5,1fr)!important;}
+  .quick button{font-size:11px!important;}
+}
+</style>
 </head>
 <body>
 <div id="toast" class="toast"></div>
@@ -604,7 +640,7 @@ body.dark .primary{color:#fff!important}
   <text x="16" y="29">1</text><text x="24" y="27">2</text><text x="33" y="29">3</text>
   <path class="swoosh" d="M9 35c10 7 22 5 31-5"/>
 </svg>
-</div><div><div class="brand">SMART HUAY</div><div class="brandSub">ຈັດການຫວຍ ງ່າຍ • ໄວ • ຊັດເຈນ</div></div></div><div class="badge">v4.9</div></div>
+</div><div><div class="brand">SMART HUAY</div><div class="brandSub">ຈັດການຫວຍ ງ່າຍ • ໄວ • ຊັດເຈນ</div></div></div><div class="badge">v5.0</div></div>
 
   <section id="sell" class="page active"><div class="pageHero"><div class="heroIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M7 9h10M8 14h2m2 0h4"/></svg></div><div><h1>ຂາຍ</h1><p>ເພີ່ມຕົວເລກ ແລະ ຢືນຢັນບິນ</p></div></div>
     <div class="card">
