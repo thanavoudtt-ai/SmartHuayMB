@@ -659,7 +659,7 @@ body.dark .primary{color:#fff!important}
 <body>
 <div id="toast" class="toast"></div>
 <div class="app">
-  <div class="top"><div class="brandWrap"><div class="brandIcon brand123" aria-label="SMART HUAY"><img src="logo.svg" alt="SMART HUAY"></div><div><div class="brand">SMART HUAY</div><div class="brandSub">ຈັດການຫວຍ ງ່າຍ • ໄວ • ຊັດເຈນ</div></div></div><div class="badge">v5.2</div></div>
+  <div class="top"><div class="brandWrap"><div class="brandIcon brand123" aria-label="SMART HUAY"><img src="smart-huay-app-logo.png" alt="SMART HUAY"></div><div><div class="brand">SMART HUAY</div><div class="brandSub">ຈັດການຫວຍ ງ່າຍ • ໄວ • ຊັດເຈນ</div></div></div><div class="badge">v5.2</div></div>
 
   <section id="sell" class="page active"><div class="pageHero"><div class="heroIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M7 9h10M8 14h2m2 0h4"/></svg></div><div><h1>ຂາຍ</h1><p>ເພີ່ມຕົວເລກ ແລະ ຢືນຢັນບິນ</p></div></div>
     <div class="card">
@@ -846,7 +846,7 @@ function showReceipt(id,customer,items){
  const total=items.reduce((s,x)=>s+Number(x.amount||0),0);
  const rows=items.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.lottery)}</td><td class="rnum">${esc(x.number)}</td><td>${esc(x.position||'-')}</td><td class="ramount">${Number(x.amount).toLocaleString('en-US')}</td></tr>`).join('');
  $('receipt').innerHTML=`<div class="rwater">${watermarks}</div><div class="rcontent">
- <div class="rhead"><div class="rlogo"><div class="rlogoMark brand123" aria-label="SMART HUAY"><img src="logo.svg" alt="SMART HUAY"></div><div><div class="rbrand">SMART HUAY</div><div class="rbrandSub">ບິນລາຍການ</div></div></div><div class="rbillid">${esc(id||'-')}</div></div>
+ <div class="rhead"><div class="rlogo"><div class="rlogoMark brand123" aria-label="SMART HUAY"><img src="smart-huay-app-logo.png" alt="SMART HUAY"></div><div><div class="rbrand">SMART HUAY</div><div class="rbrandSub">ບິນລາຍການ</div></div></div><div class="rbillid">${esc(id||'-')}</div></div>
  <div class="rmetaCompact"><div><span>ວັນທີ / ເວລາ</span><b>${ds} • ${ts}</b></div><div><span>ຊື່ລູກຄ້າ</span><b>${esc(customer)}</b></div></div>
  <div class="rtableWrap"><table class="rtable"><thead><tr><th>#</th><th>ປະເພດ</th><th>ລາຍການ</th><th>ບົນ-ລ່າງ</th><th>ຈຳນວນເງິນ</th></tr></thead><tbody>${rows}</tbody></table></div>
  <div class="rsummary compact"><span>${items.length} ລາຍການ</span><div><small>ຍອດລວມ</small><strong>${money(total)}</strong></div></div>
