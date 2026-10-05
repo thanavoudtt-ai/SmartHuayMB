@@ -773,6 +773,21 @@ body.dark .primary{color:#fff!important}
 <script>
 let lottery='ລາວ', cart=[], thaiPos='', pendingNumber='', editingBill=null, selectedAgent=null, agents=[];
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US')+' ກີບ';
+const API_URL='https://script.google.com/macros/s/AKfycbx9K608fXJD7P5b5jakWPNKwQk8IwT5VC1dhFl_5NrQ9oTqpwyFDmtgVd6HmyMsiV4g-g/exec';
+function api(action,params={}){
+ return new Promise((resolve,reject)=>{
+   const cb='__shcb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+   const q=new URLSearchParams({action,callback:cb});
+   Object.entries(params).forEach(([k,v])=>{if(v!==undefined&&v!==null)q.set(k,typeof v==='object'?JSON.stringify(v):String(v))});
+   const sc=document.createElement('script'); let timer;
+   const clean=()=>{clearTimeout(timer);try{delete window[cb]}catch(e){};sc.remove()};
+   window[cb]=r=>{clean();r&&r.ok?resolve(r.data):reject(new Error((r&&r.error)||'API error'))};
+   sc.onerror=()=>{clean();reject(new Error('ເຊື່ອມຕໍ່ Server ບໍ່ສຳເລັດ'))};
+   timer=setTimeout(()=>{clean();reject(new Error('Server timeout'))},20000);
+   sc.src=API_URL+'?'+q.toString(); document.head.appendChild(sc);
+ });
+}
+
 $('dateFilter').value=localYMD();
 $('sumStart').value=$('dateFilter').value;$('sumEnd').value=$('dateFilter').value;
 
@@ -788,28 +803,27 @@ function addItem(){
  cart.unshift({lottery,digits:detectedDigits,number:n,position:'-',amount:a}); resetEntry(); renderCart();
 }
 function loadAgents(done){
- google.script.run.withSuccessHandler(as=>{
+ api('getAgents',{includeInactive:true}).then(as=>{
    agents=as||[];
    const active=agents.filter(a=>a.active);
    if(selectedAgent && !active.some(a=>a.id===selectedAgent.id)) selectedAgent=null;
    $('agentButtons').innerHTML=active.map(a=>`<button class="${selectedAgent&&selectedAgent.id===a.id?'active':''}" onclick="selectAgent('${a.id}')">${esc(a.name)}</button>`).join('')||'<div class="muted" style="grid-column:1/-1">ຍັງບໍ່ມີແມ່ຫວຍ</div>';
    $('agentList').innerHTML=agents.map(a=>`<div class="settingRow"><div><b>${esc(a.name)}</b><div class="muted">ສ່ວນແບ່ງ ${a.percent}% • ${a.active?'ເປີດໃຊ້':'ປິດໃຊ້'}</div></div><div class="settingActions"><button class="secondary" onclick='editAgent(${JSON.stringify(JSON.stringify(a))})'>ແກ້</button><button class="secondary" onclick="toggleAgentUI('${a.id}',${!a.active})">${a.active?'ປິດ':'ເປີດ'}</button><button class="danger" onclick="deleteAgentUI('${a.id}')">ລົບ</button></div></div>`).join('')||'<div class="muted">ຍັງບໍ່ມີແມ່ຫວຍ</div>';
-   updateConfirmState();
-   if(done)done();
- }).withFailureHandler(e=>toast(e.message)).getAgents(true)
+   updateConfirmState(); if(done)done();
+ }).catch(e=>toast(e.message))
 }
 function selectAgent(id){selectedAgent=agents.find(a=>a.id===id)||null;loadAgentButtons();updateConfirmState()}
 function loadAgentButtons(){const active=agents.filter(a=>a.active);$('agentButtons').innerHTML=active.map(a=>`<button class="${selectedAgent&&selectedAgent.id===a.id?'active':''}" onclick="selectAgent('${a.id}')">${esc(a.name)}</button>`).join('')||'<div class="muted" style="grid-column:1/-1">ຍັງບໍ່ມີແມ່ຫວຍ</div>'}
 let editingAgentId='';
-function saveNewAgent(){const name=$('agentName').value.trim(),percent=Number($('agentPct').value);google.script.run.withSuccessHandler(()=>{editingAgentId='';$('agentName').value='';$('agentPct').value='';toast('ບັນທຶກແມ່ຫວຍແລ້ວ');loadAgents()}).withFailureHandler(e=>toast(e.message)).saveAgent({id:editingAgentId,name,percent,active:true})}
+function saveNewAgent(){const name=$('agentName').value.trim(),percent=Number($('agentPct').value);api('saveAgent',{payload:{id:editingAgentId,name,percent,active:true}}).then(()=>{editingAgentId='';$('agentName').value='';$('agentPct').value='';toast('ບັນທຶກແມ່ຫວຍແລ້ວ');loadAgents()}).catch(e=>toast(e.message))}
 function editAgent(raw){const a=JSON.parse(raw);editingAgentId=a.id;$('agentName').value=a.name;$('agentPct').value=a.percent;window.scrollTo(0,0)}
-function toggleAgentUI(id,active){google.script.run.withSuccessHandler(loadAgents).withFailureHandler(e=>toast(e.message)).toggleAgent(id,active)}
-function deleteAgentUI(id){openConfirm('ລົບແມ່ຫວຍ','ຂໍ້ມູນບິນເກົ່າຈະຍັງຢູ່ ຕ້ອງການລົບລາຍຊື່ນີ້ບໍ?','ລົບ',()=>google.script.run.withSuccessHandler(()=>{toast('ລົບແລ້ວ');loadAgents()}).withFailureHandler(e=>toast(e.message)).deleteAgent(id))}
+function toggleAgentUI(id,active){api('toggleAgent',{id,active}).then(loadAgents).catch(e=>toast(e.message))}
+function deleteAgentUI(id){openConfirm('ລົບແມ່ຫວຍ','ຂໍ້ມູນບິນເກົ່າຈະຍັງຢູ່ ຕ້ອງການລົບລາຍຊື່ນີ້ບໍ?','ລົບ',()=>api('deleteAgent',{id}).then(()=>{toast('ລົບແລ້ວ');loadAgents()}).catch(e=>toast(e.message)))}
 function localYMD(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 function summaryToday(btn){const d=localYMD();$('sumStart').value=d;$('sumEnd').value=d;markSummary(btn);loadSummary()}
 function summaryMonth(btn){const n=new Date(), y=n.getFullYear(),m=String(n.getMonth()+1).padStart(2,'0'),last=new Date(y,n.getMonth()+1,0).getDate();$('sumStart').value=`${y}-${m}-01`;$('sumEnd').value=`${y}-${m}-${String(last).padStart(2,'0')}`;markSummary(btn);loadSummary()}
 function markSummary(btn){btn.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
-function loadSummary(){google.script.run.withSuccessHandler(r=>{$('sumSales').textContent=money(r.totals.sales);$('sumAgentPay').textContent=money(r.totals.agentPay);$('sumShare').textContent=money(r.totals.sellerShare);$('sumBills').textContent=r.totals.bills;renderSummaryCharts(r);$('summaryList').innerHTML=r.rows.map(x=>`<div class="agentSummaryCard"><div class="agentSummaryHead"><b>${esc(x.agentName)}</b><span class="agentTag">${x.percent}%</span></div><div class="agentSummaryStats"><div class="agentSummaryStat"><span>ຍອດຂາຍ</span><b>${money(x.sales)}</b></div><div class="agentSummaryStat"><span>ສົ່ງແມ່ຫວຍ</span><b>${money(x.agentPay)}</b></div><div class="agentSummaryStat"><span>ສ່ວນແບ່ງ</span><b>${money(x.sellerShare)}</b></div></div></div>`).join('')||'<div class="card muted">ບໍ່ມີຂໍ້ມູນ</div>'}).withFailureHandler(e=>toast(e.message)).getSalesSummary($('sumStart').value,$('sumEnd').value)}
+function loadSummary(){api('getSalesSummary',{startDate:$('sumStart').value,endDate:$('sumEnd').value}).then(r=>{$('sumSales').textContent=money(r.totals.sales);$('sumAgentPay').textContent=money(r.totals.agentPay);$('sumShare').textContent=money(r.totals.sellerShare);$('sumBills').textContent=r.totals.bills;renderSummaryCharts(r);$('summaryList').innerHTML=r.rows.map(x=>`<div class="agentSummaryCard"><div class="agentSummaryHead"><b>${esc(x.agentName)}</b><span class="agentTag">${x.percent}%</span></div><div class="agentSummaryStats"><div class="agentSummaryStat"><span>ຍອດຂາຍ</span><b>${money(x.sales)}</b></div><div class="agentSummaryStat"><span>ສົ່ງແມ່ຫວຍ</span><b>${money(x.agentPay)}</b></div><div class="agentSummaryStat"><span>ສ່ວນແບ່ງ</span><b>${money(x.sellerShare)}</b></div></div></div>`).join('')||'<div class="card muted">ບໍ່ມີຂໍ້ມູນ</div>'}).catch(e=>toast(e.message))}
 function renderSummaryCharts(r){renderDailyChart(r.daily||[]);renderAgentChart(r.rows||[]);renderShareChart(r.totals||{})}
 function renderDailyChart(data){const el=$('dailyChart');if(!data.length){el.innerHTML='<div class="chartEmpty">ບໍ່ມີຂໍ້ມູນ</div>';return}const w=520,h=185,p=24,max=Math.max(...data.map(x=>Number(x.sales)||0),1),step=data.length>1?(w-p*2)/(data.length-1):0,pts=data.map((x,i)=>[p+i*step,h-p-(Number(x.sales)||0)/(max)*(h-p*2)]),poly=pts.map(x=>x.join(',')).join(' '),dots=pts.map((q,i)=>`<circle cx="${q[0]}" cy="${q[1]}" r="3.5"><title>${data[i].date}: ${money(data[i].sales)}</title></circle>`).join(''),labels=data.map((x,i)=>{if(data.length>10&&i%Math.ceil(data.length/6)!==0&&i!==data.length-1)return '';return `<text x="${pts[i][0]}" y="180" text-anchor="middle">${x.date.slice(8)}</text>`}).join('');el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" role="img"><line x1="${p}" y1="${h-p}" x2="${w-p}" y2="${h-p}" stroke="currentColor" opacity=".15"/><polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg>`}
 function renderAgentChart(rows){const el=$('agentChart');if(!rows.length){el.innerHTML='<div class="chartEmpty">ບໍ່ມີຂໍ້ມູນ</div>';return}const max=Math.max(...rows.map(x=>Number(x.sales)||0),1);el.innerHTML=`<div class="vbarChart">${rows.map(x=>{const pct=Math.max(2,(Number(x.sales)||0)/max*100);return `<div class="vbarItem" title="${esc(x.agentName)}: ${money(x.sales)}"><div class="vbarValue">${money(x.sales).replace(' ກີບ','')}</div><div class="vbarTrack"><div class="vbarFill" style="height:${pct}%"></div></div><div class="vbarLabel">${esc(x.agentName)}</div></div>`}).join('')}</div>`}
@@ -837,7 +851,7 @@ function confirmBill(){
  const p={billId:editingBill,customer,items:cart,paymentMethod:'',debt:false,agentId:selectedAgent.id,agentName:selectedAgent.name,sellerPercent:Number(selectedAgent.percent||0)};
  const fn=editingBill?'updateBill':'saveBill';
  billSubmitting=true;const cb=$('confirmPurchaseBtn');if(cb){cb.disabled=true;cb.textContent='ກຳລັງບັນທຶກ...'}
- google.script.run.withSuccessHandler(r=>{billSubmitting=false;if(cb)cb.textContent='ຢືນຢັນການຊື້';const id=r.billId||editingBill;showReceipt(id,customer,cart);editingBill=null;cart=[];$('customer').value='';selectedAgent=null;loadAgentButtons();renderCart();loadBills();loadDebts();}).withFailureHandler(e=>{billSubmitting=false;if(cb){cb.textContent='ຢືນຢັນການຊື້';updateConfirmState()}toast(e.message)})[fn](p)
+ api(fn,{payload:p}).then(r=>{billSubmitting=false;if(cb)cb.textContent='ຢືນຢັນການຊື້';const id=r.billId||editingBill;showReceipt(id,customer,cart);editingBill=null;cart=[];$('customer').value='';selectedAgent=null;loadAgentButtons();renderCart();loadBills();loadDebts();}).catch(e=>{billSubmitting=false;if(cb){cb.textContent='ຢືນຢັນການຊື້';updateConfirmState()}toast(e.message)})
 }
 function showReceipt(id,customer,items){
  const now=new Date(), ds=now.toLocaleDateString('en-GB'), ts=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
@@ -861,8 +875,8 @@ async function shareReceipt(){try{const b=await receiptBlob();const f=new File([
 async function saveReceipt(){const b=await receiptBlob(),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='SMART-HUAY.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function closeReceipt(){$('receiptModal').classList.remove('show')}
 function go(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='today')loadBills();if(id==='debts')loadDebts();if(id==='summary')loadSummary();if(id==='settings')loadAgents();window.scrollTo(0,0)}
-function loadBills(){google.script.run.withSuccessHandler(bs=>{let total=0;$('billList').innerHTML=bs.map(b=>{total+=b.total;return billCard(b,false)}).join('')||'<div class="card muted">ບໍ່ມີລາຍການ</div>';$('dayTotal').textContent=money(total)}).getBills($('dateFilter').value)}
-function loadDebts(){google.script.run.withSuccessHandler(bs=>{let total=0;$('debtList').innerHTML=bs.map(b=>{total+=b.total;return billCard(b,true)}).join('')||'<div class="card muted">ບໍ່ມີບິນຕິດໜີ້</div>';$('debtTotal').textContent=money(total)}).getDebtBills()}
+function loadBills(){api('getBills',{date:$('dateFilter').value}).then(bs=>{let total=0;$('billList').innerHTML=bs.map(b=>{total+=b.total;return billCard(b,false)}).join('')||'<div class="card muted">ບໍ່ມີລາຍການ</div>';$('dayTotal').textContent=money(total)}).catch(e=>toast(e.message))}
+function loadDebts(){api('getDebtBills').then(bs=>{let total=0;$('debtList').innerHTML=bs.map(b=>{total+=b.total;return billCard(b,true)}).join('')||'<div class="card muted">ບໍ່ມີບິນຕິດໜີ້</div>';$('debtTotal').textContent=money(total)}).catch(e=>toast(e.message))}
 function billCard(b,debt){
  const safe=encodeURIComponent(JSON.stringify(b));
  if(debt)return `<div class="billcard" onclick="openBillFromCard('${safe}')"><div class="billhead"><div><b>${esc(b.customer)}</b><div class="muted">${b.createdAt} • ${b.billId}</div><div class="agentTag">ແມ່ຫວຍ: ${esc(b.agentName||'-')} ${b.sellerPercent?('• '+b.sellerPercent+'%'):''}</div></div><div class="money">${money(b.total)}</div></div><div class="muted" style="margin-top:6px">${b.items.map(x=>x.number+' ('+x.position+')').join(', ')}</div><div class="actions"><button class="primary" onclick="event.stopPropagation();settle('${b.billId}')">ຊຳລະແລ້ວ</button></div></div>`;
@@ -875,14 +889,14 @@ function openConfirm(title,text,okText,action){$('confirmTitle').textContent=tit
 function closeConfirm(){$('confirmModal').classList.remove('show');confirmAction=null}
 function runConfirm(){const fn=confirmAction;closeConfirm();if(fn)fn()}
 function askDelete(id){openConfirm('ຢືນຢັນການລົບ','ຕ້ອງການລົບບິນນີ້ບໍ?','ລົບ',()=>removeBill(id))}
-function removeBill(id){google.script.run.withSuccessHandler(()=>{toast('ລົບແລ້ວ');loadBills();loadDebts()}).withFailureHandler(e=>toast(e.message)).deleteBill(id)}
+function removeBill(id){api('deleteBill',{billId:id}).then(()=>{toast('ລົບແລ້ວ');loadBills();loadDebts()}).catch(e=>toast(e.message))}
 function askDebt(id){openConfirm('ບິນຕິດໜີ້','ຕ້ອງການໝາຍບິນນີ້ເປັນບິນຕິດໜີ້ບໍ?','ຕິດໜີ້',()=>markAsDebt(id))}
-function markAsDebt(id){google.script.run.withSuccessHandler(()=>{toast('ໝາຍເປັນບິນຕິດໜີ້ແລ້ວ');loadBills();loadDebts()}).withFailureHandler(e=>toast(e.message)).markDebt(id)}
+function markAsDebt(id){api('markDebt',{billId:id}).then(()=>{toast('ໝາຍເປັນບິນຕິດໜີ້ແລ້ວ');loadBills();loadDebts()}).catch(e=>toast(e.message))}
 let settleBillId='',settleMethod='ເງິນສົດ';
 function settle(id){settleBillId=id;setSettleMethod('ເງິນສົດ');$('settleModal').classList.add('show')}
 function setSettleMethod(v){settleMethod=v;$('settleCash').classList.toggle('active',v==='ເງິນສົດ');$('settleTransfer').classList.toggle('active',v==='ໂອນ')}
 function closeSettle(){$('settleModal').classList.remove('show')}
-function confirmSettle(){google.script.run.withSuccessHandler(()=>{closeSettle();toast('ບັນທຶກການຊຳລະແລ້ວ');loadDebts();loadBills()}).withFailureHandler(e=>toast(e.message)).settleDebt(settleBillId,settleMethod)}
+function confirmSettle(){api('settleDebt',{billId:settleBillId,method:settleMethod}).then(()=>{closeSettle();toast('ບັນທຶກການຊຳລະແລ້ວ');loadDebts();loadBills()}).catch(e=>toast(e.message))}
 renderCart();
 </script>
 </body></html>
