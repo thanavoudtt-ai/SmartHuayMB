@@ -769,7 +769,6 @@ body.dark .primary{color:#fff!important}
 <div class="sharegrid"><button class="secondary" onclick="copyReceipt()">ຄັດລອກຮູບ</button><button class="secondary" onclick="shareReceipt()">ແຊຣ໌</button><button class="secondary" onclick="saveReceipt()">ບັນທຶກຮູບ</button></div>
 <button class="btn primary" style="width:100%;margin-top:8px" onclick="closeReceipt()">ປິດ</button></div></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 let lottery='ລາວ', cart=[], thaiPos='', pendingNumber='', editingBill=null, selectedAgent=null, agents=[];
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US')+' ກີບ';
@@ -802,23 +801,34 @@ function addItem(){
  if(a<=0){toast('ກະລຸນາໃສ່ຈຳນວນເງິນ');return}
  cart.unshift({lottery,digits:detectedDigits,number:n,position:'-',amount:a}); resetEntry(); renderCart();
 }
-function loadAgents(done){
- api('getAgents',{includeInactive:true}).then(as=>{
-   agents=as||[];
-   const active=agents.filter(a=>a.active);
-   if(selectedAgent && !active.some(a=>a.id===selectedAgent.id)) selectedAgent=null;
-   $('agentButtons').innerHTML=active.map(a=>`<button class="${selectedAgent&&selectedAgent.id===a.id?'active':''}" onclick="selectAgent('${a.id}')">${esc(a.name)}</button>`).join('')||'<div class="muted" style="grid-column:1/-1">ຍັງບໍ່ມີແມ່ຫວຍ</div>';
-   $('agentList').innerHTML=agents.map(a=>`<div class="settingRow"><div><b>${esc(a.name)}</b><div class="muted">ສ່ວນແບ່ງ ${a.percent}% • ${a.active?'ເປີດໃຊ້':'ປິດໃຊ້'}</div></div><div class="settingActions"><button class="secondary" onclick='editAgent(${JSON.stringify(JSON.stringify(a))})'>ແກ້</button><button class="secondary" onclick="toggleAgentUI('${a.id}',${!a.active})">${a.active?'ປິດ':'ເປີດ'}</button><button class="danger" onclick="deleteAgentUI('${a.id}')">ລົບ</button></div></div>`).join('')||'<div class="muted">ຍັງບໍ່ມີແມ່ຫວຍ</div>';
-   updateConfirmState(); if(done)done();
- }).catch(e=>toast(e.message))
+const AGENT_CACHE_KEY='smartHuayAgentsV1';
+let agentsSyncPromise=null;
+function renderAgents(){
+ const active=agents.filter(a=>a.active);
+ if(selectedAgent && !active.some(a=>a.id===selectedAgent.id)) selectedAgent=null;
+ $('agentButtons').innerHTML=active.map(a=>`<button class="${selectedAgent&&selectedAgent.id===a.id?'active':''}" onclick="selectAgent('${a.id}')">${esc(a.name)}</button>`).join('')||'<div class="muted" style="grid-column:1/-1">ຍັງບໍ່ມີແມ່ຫວຍ</div>';
+ $('agentList').innerHTML=agents.map(a=>`<div class="settingRow"><div><b>${esc(a.name)}</b><div class="muted">ສ່ວນແບ່ງ ${a.percent}% • ${a.active?'ເປີດໃຊ້':'ປິດໃຊ້'}</div></div><div class="settingActions"><button class="secondary" onclick='editAgent(${JSON.stringify(JSON.stringify(a))})'>ແກ້</button><button class="secondary" onclick="toggleAgentUI('${a.id}',${!a.active})">${a.active?'ປິດ':'ເປີດ'}</button><button class="danger" onclick="deleteAgentUI('${a.id}')">ລົບ</button></div></div>`).join('')||'<div class="muted">ຍັງບໍ່ມີແມ່ຫວຍ</div>';
+ updateConfirmState();
+}
+function loadCachedAgents(){
+ try{const c=JSON.parse(localStorage.getItem(AGENT_CACHE_KEY)||'null');if(Array.isArray(c)){agents=c;renderAgents();return true}}catch(e){}
+ return false;
+}
+function loadAgents(done,force=false){
+ if(!force && agentsSyncPromise){agentsSyncPromise.finally(()=>done&&done());return agentsSyncPromise}
+ agentsSyncPromise=api('getAgents',{includeInactive:true}).then(as=>{
+   agents=as||[]; try{localStorage.setItem(AGENT_CACHE_KEY,JSON.stringify(agents))}catch(e){}
+   renderAgents(); if(done)done(); return agents;
+ }).catch(e=>{if(!agents.length)toast(e.message);if(done)done();return agents}).finally(()=>{agentsSyncPromise=null});
+ return agentsSyncPromise;
 }
 function selectAgent(id){selectedAgent=agents.find(a=>a.id===id)||null;loadAgentButtons();updateConfirmState()}
 function loadAgentButtons(){const active=agents.filter(a=>a.active);$('agentButtons').innerHTML=active.map(a=>`<button class="${selectedAgent&&selectedAgent.id===a.id?'active':''}" onclick="selectAgent('${a.id}')">${esc(a.name)}</button>`).join('')||'<div class="muted" style="grid-column:1/-1">ຍັງບໍ່ມີແມ່ຫວຍ</div>'}
 let editingAgentId='';
-function saveNewAgent(){const name=$('agentName').value.trim(),percent=Number($('agentPct').value);api('saveAgent',{payload:{id:editingAgentId,name,percent,active:true}}).then(()=>{editingAgentId='';$('agentName').value='';$('agentPct').value='';toast('ບັນທຶກແມ່ຫວຍແລ້ວ');loadAgents()}).catch(e=>toast(e.message))}
+function saveNewAgent(){const name=$('agentName').value.trim(),percent=Number($('agentPct').value);api('saveAgent',{payload:{id:editingAgentId,name,percent,active:true}}).then(()=>{editingAgentId='';$('agentName').value='';$('agentPct').value='';toast('ບັນທຶກແມ່ຫວຍແລ້ວ');loadAgents(null,true)}).catch(e=>toast(e.message))}
 function editAgent(raw){const a=JSON.parse(raw);editingAgentId=a.id;$('agentName').value=a.name;$('agentPct').value=a.percent;window.scrollTo(0,0)}
-function toggleAgentUI(id,active){api('toggleAgent',{id,active}).then(loadAgents).catch(e=>toast(e.message))}
-function deleteAgentUI(id){openConfirm('ລົບແມ່ຫວຍ','ຂໍ້ມູນບິນເກົ່າຈະຍັງຢູ່ ຕ້ອງການລົບລາຍຊື່ນີ້ບໍ?','ລົບ',()=>api('deleteAgent',{id}).then(()=>{toast('ລົບແລ້ວ');loadAgents()}).catch(e=>toast(e.message)))}
+function toggleAgentUI(id,active){api('toggleAgent',{id,active}).then(()=>loadAgents(null,true)).catch(e=>toast(e.message))}
+function deleteAgentUI(id){openConfirm('ລົບແມ່ຫວຍ','ຂໍ້ມູນບິນເກົ່າຈະຍັງຢູ່ ຕ້ອງການລົບລາຍຊື່ນີ້ບໍ?','ລົບ',()=>api('deleteAgent',{id}).then(()=>{toast('ລົບແລ້ວ');loadAgents(null,true)}).catch(e=>toast(e.message)))}
 function localYMD(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 function summaryToday(btn){const d=localYMD();$('sumStart').value=d;$('sumEnd').value=d;markSummary(btn);loadSummary()}
 function summaryMonth(btn){const n=new Date(), y=n.getFullYear(),m=String(n.getMonth()+1).padStart(2,'0'),last=new Date(y,n.getMonth()+1,0).getDate();$('sumStart').value=`${y}-${m}-01`;$('sumEnd').value=`${y}-${m}-${String(last).padStart(2,'0')}`;markSummary(btn);loadSummary()}
@@ -831,7 +841,8 @@ function renderShareChart(t){const el=$('shareChart'),pay=Number(t.agentPay)||0,
 function setTheme(t){localStorage.setItem('smartHuayTheme',t);document.body.classList.toggle('dark',t==='dark');$('lightBtn').classList.toggle('active',t==='light');$('darkBtn').classList.toggle('active',t==='dark')}
 
 renderCart();
-loadAgents();
+loadCachedAgents();
+setTimeout(()=>loadAgents(),0);
 $('customer').addEventListener('input',updateConfirmState);updateConfirmState();
 function setFontSize(v,btn){localStorage.setItem('smartHuayFontScale',v);document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
 function initFontSize(){const v=localStorage.getItem('smartHuayFontScale')||'1';document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
@@ -868,13 +879,20 @@ function showReceipt(id,customer,items){
  $('receiptModal').classList.add('show')
 }
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-async function receiptBlob(){const el=$('receipt');el.classList.add('capture-quality');const c=await html2canvas(el,{scale:4,useCORS:true,backgroundColor:'#f9fbfb',logging:false});el.classList.remove('capture-quality');return await new Promise(r=>c.toBlob(r,'image/png'))}
+let html2canvasPromise=null;
+function ensureHtml2Canvas(){
+ if(window.html2canvas)return Promise.resolve(window.html2canvas);
+ if(html2canvasPromise)return html2canvasPromise;
+ html2canvasPromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.async=true;s.onload=()=>resolve(window.html2canvas);s.onerror=()=>reject(new Error('โหลดระบบบันทึกรูปไม่สำเร็จ'));document.head.appendChild(s)});
+ return html2canvasPromise;
+}
+async function receiptBlob(){await ensureHtml2Canvas();const el=$('receipt');el.classList.add('capture-quality');try{const c=await html2canvas(el,{scale:4,useCORS:true,backgroundColor:'#f9fbfb',logging:false});return await new Promise(r=>c.toBlob(r,'image/png'))}finally{el.classList.remove('capture-quality')}}
 async function copyReceipt(){try{const b=await receiptBlob();await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);toast('ຄັດລອກຮູບແລ້ວ')}catch(e){toast('ເຄື່ອງນີ້ບໍ່ຮອງຮັບການຄັດລອກຮູບ ໃຫ້ໃຊ້ ແຊຣ໌')}
 }
 async function shareReceipt(){try{const b=await receiptBlob();const f=new File([b],'SMART-HUAY.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:'SMART HUAY'});else toast('ເຄື່ອງນີ້ບໍ່ຮອງຮັບ Share')}catch(e){}}
 async function saveReceipt(){const b=await receiptBlob(),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='SMART-HUAY.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function closeReceipt(){$('receiptModal').classList.remove('show')}
-function go(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='today')loadBills();if(id==='debts')loadDebts();if(id==='summary')loadSummary();if(id==='settings')loadAgents();window.scrollTo(0,0)}
+function go(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='today')loadBills();if(id==='debts')loadDebts();if(id==='summary')loadSummary();if(id==='settings')loadAgents(null,true);window.scrollTo(0,0)}
 function loadBills(){api('getBills',{date:$('dateFilter').value}).then(bs=>{let total=0;$('billList').innerHTML=bs.map(b=>{total+=b.total;return billCard(b,false)}).join('')||'<div class="card muted">ບໍ່ມີລາຍການ</div>';$('dayTotal').textContent=money(total)}).catch(e=>toast(e.message))}
 function loadDebts(){api('getDebtBills').then(bs=>{let total=0;$('debtList').innerHTML=bs.map(b=>{total+=b.total;return billCard(b,true)}).join('')||'<div class="card muted">ບໍ່ມີບິນຕິດໜີ້</div>';$('debtTotal').textContent=money(total)}).catch(e=>toast(e.message))}
 function billCard(b,debt){
