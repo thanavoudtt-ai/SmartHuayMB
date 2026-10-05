@@ -782,7 +782,7 @@ function api(action,params={}){
    const clean=()=>{clearTimeout(timer);try{delete window[cb]}catch(e){};sc.remove()};
    window[cb]=r=>{clean();r&&r.ok?resolve(r.data):reject(new Error((r&&r.error)||'API error'))};
    sc.onerror=()=>{clean();reject(new Error('ເຊື່ອມຕໍ່ Server ບໍ່ສຳເລັດ'))};
-   timer=setTimeout(()=>{clean();reject(new Error('Server timeout'))},20000);
+   timer=setTimeout(()=>{clean();reject(new Error('Server timeout'))},12000);
    sc.src=API_URL+'?'+q.toString(); document.head.appendChild(sc);
  });
 }
@@ -842,7 +842,7 @@ function setTheme(t){localStorage.setItem('smartHuayTheme',t);document.body.clas
 
 renderCart();
 loadCachedAgents();
-setTimeout(()=>loadAgents(),0);
+setTimeout(()=>loadAgents(),1200);
 $('customer').addEventListener('input',updateConfirmState);updateConfirmState();
 function setFontSize(v,btn){localStorage.setItem('smartHuayFontScale',v);document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
 function initFontSize(){const v=localStorage.getItem('smartHuayFontScale')||'1';document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
