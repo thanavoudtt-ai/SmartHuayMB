@@ -966,7 +966,12 @@ function setTheme(t){localStorage.setItem('smartHuayTheme',t);document.body.clas
 loadCachedAnimalNames();
 renderCart();
 loadCachedAgents();
-setTimeout(()=>loadAgents(),1200);
+// Load supplier data as soon as the Sell page starts. If the first request is
+// still waking the Apps Script web app, retry once automatically so the user
+// does not need to open Settings first.
+loadAgents().then(()=>{
+  if(!agents.length) setTimeout(()=>loadAgents(null,true),1500);
+});
 $('customer').addEventListener('input',updateConfirmState);updateConfirmState();
 function setFontSize(v,btn){localStorage.setItem('smartHuayFontScale',v);document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
 function initFontSize(){const v=localStorage.getItem('smartHuayFontScale')||'1';document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
