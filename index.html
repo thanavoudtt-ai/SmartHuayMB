@@ -705,6 +705,13 @@ body.dark .primary{color:#fff!important}
 .receiptPageBadge{width:32px;height:32px;min-width:32px;border-radius:50%;display:grid;place-items:center;background:#f4cf68;color:#073f49;font:900 16px Arial,sans-serif;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 8px rgba(0,0,0,.16);margin-left:8px}
 .receiptPageInfo{font:800 10px Arial,sans-serif;color:#dff4f2;text-align:right;margin-top:4px}
 </style>
+
+<style id="smart-huay-animal-preview-order">
+.animalPreview{display:none;margin:0 0 12px;padding:11px 13px;border:1px solid #cfe8ca;border-radius:15px;background:linear-gradient(145deg,#f1faee,#e5f6e1);color:#17351f}
+.animalPreview.show{display:block}.animalPreviewTitle{font-size:13px;font-weight:700;color:#5f7765;margin-bottom:4px}.animalPreviewMain{font-size:16px;font-weight:800}.animalPreviewNums{color:#087a35;letter-spacing:.4px}
+.item{grid-template-columns:auto 1fr auto auto!important}.itemOrder{width:30px;height:30px;border-radius:10px;background:#e7f6e4;color:#087a35;display:grid;place-items:center;font-weight:900;font-size:13px}
+body.dark .animalPreview{background:#213325;border-color:#31533a;color:#edf5ee}body.dark .animalPreviewTitle{color:#a9b6ac}body.dark .itemOrder{background:#263b29;color:#72dc77}
+</style>
 </head>
 <body>
 <div id="toast" class="toast"></div>
@@ -715,6 +722,7 @@ body.dark .primary{color:#fff!important}
     <div class="card">
       <div class="field"><label>ຊື່ລູກຄ້າ</label><input id="customer" placeholder="ປ້ອນຊື່ລູກຄ້າ"></div>
       <div class="field"><label>ປະເພດເລກ</label><div class="seg"><button id="laoBtn" class="active" onclick="setLottery('ລາວ')">ເລກລາວ</button><button id="thaiBtn" onclick="setLottery('ໄທ')">ເລກໄທ</button></div></div>
+      <div id="animalPreview" class="animalPreview" aria-live="polite"><div class="animalPreviewTitle">ຕົວຊ່ວຍຈື່ເລກນາມສັດ</div><div class="animalPreviewMain"><span id="animalPreviewName"></span> — <span id="animalPreviewNums" class="animalPreviewNums"></span></div></div>
       <div class="entryRow">
         <div class="field"><label>ເລກ</label><input id="number" inputmode="numeric" maxlength="3" placeholder="00 / 000"></div>
         <div class="field"><label>ຈຳນວນເງິນ (ກີບ)</label><input id="amount" inputmode="numeric" placeholder="0"></div>
@@ -844,6 +852,12 @@ function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';set
 function setLottery(v){lottery=v;$('laoBtn').classList.toggle('active',v==='ລາວ');$('thaiBtn').classList.toggle('active',v==='ໄທ')}
 function addMoney(id,v){const e=$(id);e.value=(Number(String(e.value||0).replace(/\D/g,''))||0)+v}
 function quick(v){addMoney('amount',v)} function thaiQuick(v){addMoney('thaiAmount',v)}
+// Preview helper only; it never adds numbers to cart or receipt.
+const animalGroups=[{name:'ໝາ',numbers:['11','51','91']}];
+function animalGroupFor(number){const n=String(number||'').replace(/\D/g,'');return animalGroups.find(g=>g.numbers.includes(n))||null}
+function updateAnimalPreview(){const box=$('animalPreview');if(!box)return;const n=$('number').value.replace(/\D/g,'');const g=animalGroupFor(n);if(!g){box.classList.remove('show');return}$('animalPreviewName').textContent=g.name;$('animalPreviewNums').textContent=g.numbers.join('  •  ');box.classList.add('show')}
+$('number').addEventListener('input',updateAnimalPreview);
+
 // Animal names are optional display metadata only. Adding a number never waits for the server.
 const ANIMAL_CACHE_KEY='smartHuayAnimalNamesV1';
 let animalNames={};
@@ -916,9 +930,9 @@ setTheme(localStorage.getItem('smartHuayTheme')||'light');
 function markPos(el){[...el.parentElement.children].forEach(x=>x.classList.remove('active'));el.classList.add('active')}
 function addThai(){const a=Number($('thaiAmount').value||0);if(!thaiPos){toast('ກະລຸນາເລືອກ ບົນ / ລ່າງ / ບົນ-ລ່າງ');return}if(a<=0){toast('ກະລຸນາໃສ່ຈຳນວນເງິນ');return}cart.unshift({lottery:'ໄທ',digits:2,number:pendingNumber,position:thaiPos,amount:a});closeThai();resetEntry();renderCart()}
 function closeThai(){$('thaiModal').classList.remove('show')}
-function resetEntry(){$('number').value='';$('amount').value='';$('number').focus()}
+function resetEntry(){$('number').value='';$('amount').value='';updateAnimalPreview();$('number').focus()}
 function updateConfirmState(){const b=$('confirmPurchaseBtn');if(!b)return;const ok=$('customer').value.trim()&&cart.length>0&&selectedAgent;b.disabled=!ok}
-function renderCart(){$('cart').innerHTML=cart.length?cart.map((x,i)=>{const animal=animalNameFor(x.number);const pos=(x.position&&x.position!=='-')?` • ${esc(x.position)}`:'';const animalText=animal?` • ${esc(animal)}`:'';return `<div class="item"><div><div class="num">${esc(x.number)}</div><div class="muted">${esc(x.lottery)}${pos}${animalText}</div></div><div class="money">${money(x.amount)}</div><button class="x" onclick="cart.splice(${i},1);renderCart()">×</button></div>`}).join(''):'<div class="muted">ຍັງບໍ່ມີລາຍການ</div>';$('cartTotal').textContent=money(cart.reduce((s,x)=>s+x.amount,0));updateConfirmState()}
+function renderCart(){$('cart').innerHTML=cart.length?cart.map((x,i)=>{const pos=(x.position&&x.position!=='-')?` • ${esc(x.position)}`:'';return `<div class="item"><div class="itemOrder">${i+1}</div><div><div class="num">${esc(x.number)}</div><div class="muted">${esc(x.lottery)}${pos}</div></div><div class="money">${money(x.amount)}</div><button class="x" onclick="cart.splice(${i},1);renderCart()">×</button></div>`}).join(''):'<div class="muted">ຍັງບໍ່ມີລາຍການ</div>';$('cartTotal').textContent=money(cart.reduce((s,x)=>s+x.amount,0));updateConfirmState()}
 let billSubmitting=false;
 function confirmBill(){
  if(billSubmitting)return;
