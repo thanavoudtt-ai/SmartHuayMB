@@ -862,7 +862,7 @@ function confirmBill(){
  const p={billId:editingBill,customer,items:cart,paymentMethod:'',debt:false,agentId:selectedAgent.id,agentName:selectedAgent.name,sellerPercent:Number(selectedAgent.percent||0)};
  const fn=editingBill?'updateBill':'saveBill';
  billSubmitting=true;const cb=$('confirmPurchaseBtn');if(cb){cb.disabled=true;cb.textContent='ກຳລັງບັນທຶກ...'}
- api(fn,{payload:p}).then(r=>{billSubmitting=false;if(cb)cb.textContent='ຢືນຢັນການຊື້';const id=r.billId||editingBill;showReceipt(id,customer,cart);editingBill=null;cart=[];$('customer').value='';selectedAgent=null;loadAgentButtons();renderCart();loadBills();loadDebts();}).catch(e=>{billSubmitting=false;if(cb){cb.textContent='ຢືນຢັນການຊື້';updateConfirmState()}toast(e.message)})
+ api(fn,{payload:p}).then(r=>{billSubmitting=false;if(cb)cb.textContent='ຢືນຢັນການຊື້';const id=r.billId||editingBill;showReceipt(id,customer,cart);editingBill=null;cart=[];$('customer').value='';selectedAgent=null;loadAgentButtons();renderCart();}).catch(e=>{billSubmitting=false;if(cb){cb.textContent='ຢືນຢັນການຊື້';updateConfirmState()}toast(e.message)})
 }
 function showReceipt(id,customer,items){
  const now=new Date(), ds=now.toLocaleDateString('en-GB'), ts=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
