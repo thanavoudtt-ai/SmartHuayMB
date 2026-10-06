@@ -690,6 +690,15 @@ body.dark .primary{color:#fff!important}
 @media(max-width:390px){#receiptModal .sheet{padding-left:8px!important;padding-right:8px!important}#receiptModal .rmetaCompact,#receiptModal .rtableWrap,#receiptModal .rsummary.compact{margin-left:8px!important;margin-right:8px!important}.purchaseSuccess b{font-size:20px}.purchaseSuccess .successCheck{width:58px;height:58px;font-size:34px}}
 </style>
 
+
+<style id="smart-huay-v54-receipt-columns">
+#receiptModal .rtable th:nth-child(1),#receiptModal .rtable td:nth-child(1){width:7%}
+#receiptModal .rtable th:nth-child(2),#receiptModal .rtable td:nth-child(2){width:22%}
+#receiptModal .rtable th:nth-child(3),#receiptModal .rtable td:nth-child(3){width:27%}
+#receiptModal .rtable th:nth-child(4),#receiptModal .rtable td:nth-child(4){width:20%}
+#receiptModal .rtable th:nth-child(5),#receiptModal .rtable td:nth-child(5){width:24%}
+#receiptModal .rmetaCompact{grid-template-columns:1fr 1fr!important}
+</style>
 </head>
 <body>
 <div id="toast" class="toast"></div>
@@ -904,11 +913,11 @@ function showReceipt(id,customer,items,agentName=''){
  const stamp=`SMART HUAY • ${ds} • ${ts}`;
  const watermarks=Array.from({length:15},(_,i)=>`<span style="left:${(i%3)*37-10}%;top:${Math.floor(i/3)*20+5}%">${esc(stamp)}</span>`).join('');
  const total=items.reduce((sum,x)=>sum+Number(x.amount||0),0);
- const rows=items.map((x,i)=>{const isThai=String(x.lottery).includes('ໄທ');const type=`${x.lottery} ${x.digits} ໂຕ${x.position&&x.position!=='-'?' • '+x.position:''}`;return `<tr><td>${i+1}</td><td class="rnum">${esc(x.number)}</td><td><span class="rtypeTag ${isThai?'thai':'lao'}">${esc(type)}</span></td><td class="ramount">${Number(x.amount).toLocaleString('en-US')}</td></tr>`}).join('');
+ const rows=items.map((x,i)=>{const isThai=String(x.lottery).includes('ໄທ');const type=`${x.lottery} ${x.digits} ໂຕ`;const position=x.position&&x.position!=='-'?x.position:'-';return `<tr><td>${i+1}</td><td class="rnum">${esc(x.number)}</td><td><span class="rtypeTag ${isThai?'thai':'lao'}">${esc(type)}</span></td><td>${esc(position)}</td><td class="ramount">${Number(x.amount).toLocaleString('en-US')}</td></tr>`}).join('');
  $('receipt').innerHTML=`<div class="rwater">${watermarks}</div><div class="rcontent">
  <div class="rhead"><div class="rlogo"><div class="rlogoMark brand123" aria-label="SMART HUAY"><img src="smart-huay-app-logo.png" alt="SMART HUAY"></div><div><div class="rbrand">SMART HUAY</div><div class="rbrandSub">ບິນລາຍການ</div></div></div><div class="rbillid">${esc(id||'-')}</div></div>
- <div class="rmetaCompact"><div><span>ວັນທີ / ເວລາ</span><b>${ds} • ${ts}</b></div><div><span>ຈຳນວນ</span><b>${items.length} ລາຍການ</b></div><div class="wide"><div><span>ຊື່ລູກຄ້າ</span><b>${esc(customer)}</b></div><div><span>ແມ່ຫວຍ</span><b>${esc(agentName||'-')}</b></div></div></div>
- <div class="rtableWrap"><table class="rtable"><thead><tr><th>#</th><th>ເລກຫວຍ</th><th>ປະເພດ</th><th>ຈຳນວນ (ກີບ)</th></tr></thead><tbody>${rows}</tbody></table></div>
+ <div class="rmetaCompact"><div><span>ວັນທີ / ເວລາ</span><b>${ds} • ${ts}</b></div><div><span>ຊື່ລູກຄ້າ</span><b>${esc(customer)}</b></div></div>
+ <div class="rtableWrap"><table class="rtable"><thead><tr><th>#</th><th>ເລກຫວຍ</th><th>ປະເພດ</th><th>ບົນ/ລ່າງ</th><th>ຈຳນວນ (ກີບ)</th></tr></thead><tbody>${rows}</tbody></table></div>
  <div class="rsummary compact"><span>ຍອດເງິນລວມທີ່ຕ້ອງຊຳລະ</span><div><strong>${money(total)}</strong></div></div>
  <div class="rfootCompact">SMART HUAY</div></div>`;
  const success=$('purchaseSuccess');if(success){success.style.animation='none';void success.offsetWidth;success.style.animation='successIn .42s ease both'}
