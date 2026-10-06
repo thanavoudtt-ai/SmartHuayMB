@@ -712,10 +712,7 @@ body.dark .primary{color:#fff!important}
     <div class="summaryAgentsTitle">ສະຫຼຸບແຍກຕາມແມ່ຫວຍ</div>
     <div id="summaryList" class="agentSummaryGrid"></div>
     <div class="card chartCard"><div class="chartTitle">ຍອດຂາຍລາຍວັນ</div><div class="chartSub">ຍອດຂາຍຕາມຊ່ວງວັນທີ່ເລືອກ</div><div id="dailyChart" class="chartBox"></div></div>
-    <div class="chartPair">
-      <div class="card chartCard"><div class="chartTitle">ຍອດຂາຍແຍກຕາມແມ່ຫວຍ</div><div class="chartSub">ປຽບທຽບຍອດຂາຍຂອງແຕ່ລະແມ່ຫວຍ</div><div id="agentChart" class="chartBox tall"></div></div>
-      <div class="card chartCard"><div class="chartTitle">ການແບ່ງເງິນ</div><div class="chartSub">ສົ່ງແມ່ຫວຍ ແລະ ສ່ວນແບ່ງຂອງເຮົາ</div><div id="shareChart" class="chartBox"></div></div>
-    </div>
+
   </section>
 
   <section id="settings" class="page"><div class="pageHero"><div class="heroIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7a7 7 0 0 0-.7-1.7l.9-1.9-2.1-2.1-1.9.9a7 7 0 0 0-1.7-.7L10.5 2h-3l-.7 2a7 7 0 0 0-1.7.7l-1.9-.9-2.1 2.1.9 1.9a7 7 0 0 0-.7 1.7L0 10.5v3l2 .7a7 7 0 0 0 .7 1.7l-.9 1.9 2.1 2.1 1.9-.9a7 7 0 0 0 1.7.7l.7 2h3l.7-2a7 7 0 0 0 1.7-.7l1.9.9 2.1-2.1-.9-1.9a7 7 0 0 0 .7-1.7z" transform="translate(2.5 0) scale(.8)"/></svg></div><div><h1>ຕັ້ງຄ່າ</h1><p>ຈັດການແມ່ຫວຍ ແລະ ຮູບແບບແອັບ</p></div></div>
@@ -782,7 +779,8 @@ function api(action,params={}){
    const clean=()=>{clearTimeout(timer);try{delete window[cb]}catch(e){};sc.remove()};
    window[cb]=r=>{clean();r&&r.ok?resolve(r.data):reject(new Error((r&&r.error)||'API error'))};
    sc.onerror=()=>{clean();reject(new Error('ເຊື່ອມຕໍ່ Server ບໍ່ສຳເລັດ'))};
-   timer=setTimeout(()=>{clean();reject(new Error('Server timeout'))},12000);
+   const timeoutMs=action==='getSalesSummary'?45000:30000;
+   timer=setTimeout(()=>{clean();reject(new Error('Server timeout'))},timeoutMs);
    sc.src=API_URL+'?'+q.toString(); document.head.appendChild(sc);
  });
 }
@@ -834,7 +832,7 @@ function summaryToday(btn){const d=localYMD();$('sumStart').value=d;$('sumEnd').
 function summaryMonth(btn){const n=new Date(), y=n.getFullYear(),m=String(n.getMonth()+1).padStart(2,'0'),last=new Date(y,n.getMonth()+1,0).getDate();$('sumStart').value=`${y}-${m}-01`;$('sumEnd').value=`${y}-${m}-${String(last).padStart(2,'0')}`;markSummary(btn);loadSummary()}
 function markSummary(btn){btn.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
 function loadSummary(){api('getSalesSummary',{startDate:$('sumStart').value,endDate:$('sumEnd').value}).then(r=>{$('sumSales').textContent=money(r.totals.sales);$('sumAgentPay').textContent=money(r.totals.agentPay);$('sumShare').textContent=money(r.totals.sellerShare);$('sumBills').textContent=r.totals.bills;renderSummaryCharts(r);$('summaryList').innerHTML=r.rows.map(x=>`<div class="agentSummaryCard"><div class="agentSummaryHead"><b>${esc(x.agentName)}</b><span class="agentTag">${x.percent}%</span></div><div class="agentSummaryStats"><div class="agentSummaryStat"><span>ຍອດຂາຍ</span><b>${money(x.sales)}</b></div><div class="agentSummaryStat"><span>ສົ່ງແມ່ຫວຍ</span><b>${money(x.agentPay)}</b></div><div class="agentSummaryStat"><span>ສ່ວນແບ່ງ</span><b>${money(x.sellerShare)}</b></div></div></div>`).join('')||'<div class="card muted">ບໍ່ມີຂໍ້ມູນ</div>'}).catch(e=>toast(e.message))}
-function renderSummaryCharts(r){renderDailyChart(r.daily||[]);renderAgentChart(r.rows||[]);renderShareChart(r.totals||{})}
+function renderSummaryCharts(r){renderDailyChart(r.daily||[])}
 function renderDailyChart(data){const el=$('dailyChart');if(!data.length){el.innerHTML='<div class="chartEmpty">ບໍ່ມີຂໍ້ມູນ</div>';return}const w=520,h=185,p=24,max=Math.max(...data.map(x=>Number(x.sales)||0),1),step=data.length>1?(w-p*2)/(data.length-1):0,pts=data.map((x,i)=>[p+i*step,h-p-(Number(x.sales)||0)/(max)*(h-p*2)]),poly=pts.map(x=>x.join(',')).join(' '),dots=pts.map((q,i)=>`<circle cx="${q[0]}" cy="${q[1]}" r="3.5"><title>${data[i].date}: ${money(data[i].sales)}</title></circle>`).join(''),labels=data.map((x,i)=>{if(data.length>10&&i%Math.ceil(data.length/6)!==0&&i!==data.length-1)return '';return `<text x="${pts[i][0]}" y="180" text-anchor="middle">${x.date.slice(8)}</text>`}).join('');el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" role="img"><line x1="${p}" y1="${h-p}" x2="${w-p}" y2="${h-p}" stroke="currentColor" opacity=".15"/><polyline points="${poly}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg>`}
 function renderAgentChart(rows){const el=$('agentChart');if(!rows.length){el.innerHTML='<div class="chartEmpty">ບໍ່ມີຂໍ້ມູນ</div>';return}const max=Math.max(...rows.map(x=>Number(x.sales)||0),1);el.innerHTML=`<div class="vbarChart">${rows.map(x=>{const pct=Math.max(2,(Number(x.sales)||0)/max*100);return `<div class="vbarItem" title="${esc(x.agentName)}: ${money(x.sales)}"><div class="vbarValue">${money(x.sales).replace(' ກີບ','')}</div><div class="vbarTrack"><div class="vbarFill" style="height:${pct}%"></div></div><div class="vbarLabel">${esc(x.agentName)}</div></div>`}).join('')}</div>`}
 function renderShareChart(t){const el=$('shareChart'),pay=Number(t.agentPay)||0,share=Number(t.sellerShare)||0,total=pay+share;if(!total){el.innerHTML='<div class="chartEmpty">ບໍ່ມີຂໍ້ມູນ</div>';return}const pct=pay/total*100;el.innerHTML=`<div class="donutWrap"><div class="donut" style="background:conic-gradient(#17a34a 0 ${pct}%,#f2b63d ${pct}% 100%)"><div class="donutCenter">${Math.round(share/total*100)}%<br>ສ່ວນແບ່ງ</div></div><div class="donutLegend"><div><span class="legendDot" style="background:#17a34a"></span>ສົ່ງແມ່ຫວຍ <b>${money(pay)}</b></div><div><span class="legendDot" style="background:#f2b63d"></span>ສ່ວນແບ່ງ <b>${money(share)}</b></div></div></div>`}
@@ -842,7 +840,7 @@ function setTheme(t){localStorage.setItem('smartHuayTheme',t);document.body.clas
 
 renderCart();
 loadCachedAgents();
-setTimeout(()=>loadAgents(),1200);
+setTimeout(()=>loadAgents(),0);
 $('customer').addEventListener('input',updateConfirmState);updateConfirmState();
 function setFontSize(v,btn){localStorage.setItem('smartHuayFontScale',v);document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
 function initFontSize(){const v=localStorage.getItem('smartHuayFontScale')||'1';document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
@@ -907,14 +905,14 @@ function openConfirm(title,text,okText,action){$('confirmTitle').textContent=tit
 function closeConfirm(){$('confirmModal').classList.remove('show');confirmAction=null}
 function runConfirm(){const fn=confirmAction;closeConfirm();if(fn)fn()}
 function askDelete(id){openConfirm('ຢືນຢັນການລົບ','ຕ້ອງການລົບບິນນີ້ບໍ?','ລົບ',()=>removeBill(id))}
-function removeBill(id){api('deleteBill',{billId:id}).then(()=>{toast('ລົບແລ້ວ');loadBills();loadDebts()}).catch(e=>toast(e.message))}
+function removeBill(id){api('deleteBill',{billId:id}).then(()=>{toast('ລົບແລ້ວ');loadBills()}).catch(e=>toast(e.message))}
 function askDebt(id){openConfirm('ບິນຕິດໜີ້','ຕ້ອງການໝາຍບິນນີ້ເປັນບິນຕິດໜີ້ບໍ?','ຕິດໜີ້',()=>markAsDebt(id))}
-function markAsDebt(id){api('markDebt',{billId:id}).then(()=>{toast('ໝາຍເປັນບິນຕິດໜີ້ແລ້ວ');loadBills();loadDebts()}).catch(e=>toast(e.message))}
+function markAsDebt(id){api('markDebt',{billId:id}).then(()=>{toast('ໝາຍເປັນບິນຕິດໜີ້ແລ້ວ');loadBills()}).catch(e=>toast(e.message))}
 let settleBillId='',settleMethod='ເງິນສົດ';
 function settle(id){settleBillId=id;setSettleMethod('ເງິນສົດ');$('settleModal').classList.add('show')}
 function setSettleMethod(v){settleMethod=v;$('settleCash').classList.toggle('active',v==='ເງິນສົດ');$('settleTransfer').classList.toggle('active',v==='ໂອນ')}
 function closeSettle(){$('settleModal').classList.remove('show')}
-function confirmSettle(){api('settleDebt',{billId:settleBillId,method:settleMethod}).then(()=>{closeSettle();toast('ບັນທຶກການຊຳລະແລ້ວ');loadDebts();loadBills()}).catch(e=>toast(e.message))}
+function confirmSettle(){api('settleDebt',{billId:settleBillId,method:settleMethod}).then(()=>{closeSettle();toast('ບັນທຶກການຊຳລະແລ້ວ');loadDebts()}).catch(e=>toast(e.message))}
 renderCart();
 </script>
 </body></html>
