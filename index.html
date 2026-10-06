@@ -853,22 +853,52 @@ function setLottery(v){lottery=v;$('laoBtn').classList.toggle('active',v==='ລ�
 function addMoney(id,v){const e=$(id);e.value=(Number(String(e.value||0).replace(/\D/g,''))||0)+v}
 function quick(v){addMoney('amount',v)} function thaiQuick(v){addMoney('thaiAmount',v)}
 // Preview helper only; it never adds numbers to cart or receipt.
-const animalGroups=[{name:'ໝາ',numbers:['11','51','91']}];
+const animalGroups=[
+  {name:'ປານ້ອຍ',numbers:['01','41','81']},
+  {name:'ຫອຍ',numbers:['02','42','82']},
+  {name:'ຫ່ານ',numbers:['03','43','83']},
+  {name:'ນົກຍຸງ',numbers:['04','44','84']},
+  {name:'ສິງ',numbers:['05','45','85']},
+  {name:'ເສືອ',numbers:['06','46','86']},
+  {name:'ໝູ',numbers:['07','47','87']},
+  {name:'ກະຕ່າຍ',numbers:['08','48','88']},
+  {name:'ຄວາຍ',numbers:['09','49','89']},
+  {name:'ນາກນ້ຳ',numbers:['10','50','90']},
+  {name:'ໝາ',numbers:['11','51','91']},
+  {name:'ມ້າ',numbers:['12','52','92']},
+  {name:'ຊ້າງ',numbers:['13','53','93']},
+  {name:'ແມວບ້ານ',numbers:['14','54','94']},
+  {name:'ໜູ',numbers:['15','55','95']},
+  {name:'ເຜິງ',numbers:['16','56','96']},
+  {name:'ນົກຍາງ',numbers:['17','57','97']},
+  {name:'ແມວປ່າ',numbers:['18','58','98']},
+  {name:'ແມງກະເບື້ອ',numbers:['19','59','99']},
+  {name:'ຂີ້ເຂັບ',numbers:['00','20','60']},
+  {name:'ນົກແອ່ນ',numbers:['21','61']},
+  {name:'ນົກກາງແກ',numbers:['22','62']},
+  {name:'ລິງ',numbers:['23','63']},
+  {name:'ກົບ',numbers:['24','64']},
+  {name:'ແຫຼວ',numbers:['25','65']},
+  {name:'ນາກບິນ',numbers:['26','66']},
+  {name:'ເຕົ່າ',numbers:['27','67']},
+  {name:'ໄກ່',numbers:['28','68']},
+  {name:'ອ່ຽນ',numbers:['29','69']},
+  {name:'ປ່າໃຫຍ່',numbers:['30','70']},
+  {name:'ກຸ້ງ',numbers:['31','71']},
+  {name:'ງູ',numbers:['32','72']},
+  {name:'ແມງມຸມ',numbers:['33','73']},
+  {name:'ກວາງ',numbers:['34','74']},
+  {name:'ແບ້',numbers:['35','75']},
+  {name:'ເຫງັນ',numbers:['36','76']},
+  {name:'ຫຼິ່ນ',numbers:['37','77']},
+  {name:'ເໝັ່ນ',numbers:['38','78']},
+  {name:'ກະປູ',numbers:['39','79']},
+  {name:'ນົກອິນຊີ',numbers:['40','80']}
+];
 function animalGroupFor(number){const n=String(number||'').replace(/\D/g,'');return animalGroups.find(g=>g.numbers.includes(n))||null}
 function updateAnimalPreview(){const box=$('animalPreview');if(!box)return;const n=$('number').value.replace(/\D/g,'');const g=animalGroupFor(n);if(!g){box.classList.remove('show');return}$('animalPreviewName').textContent=g.name;$('animalPreviewNums').textContent=g.numbers.join('  •  ');box.classList.add('show')}
 $('number').addEventListener('input',updateAnimalPreview);
 
-// Animal names are optional display metadata only. Adding a number never waits for the server.
-const ANIMAL_CACHE_KEY='smartHuayAnimalNamesV1';
-let animalNames={};
-function animalKey(number){const d=String(number||'').replace(/\D/g,'');return d.length>=2?d.slice(-2).padStart(2,'0'):''}
-function animalNameFor(number){return animalNames[animalKey(number)]||''}
-function loadCachedAnimalNames(){try{const x=JSON.parse(localStorage.getItem(ANIMAL_CACHE_KEY)||'{}');if(x&&typeof x==='object')animalNames=x}catch(e){}}
-function loadAnimalNames(){
- api('getAnimalNames').then(map=>{
-   if(map&&typeof map==='object'){animalNames=map;try{localStorage.setItem(ANIMAL_CACHE_KEY,JSON.stringify(map))}catch(e){};renderCart()}
- }).catch(()=>{/* optional metadata: never block selling */});
-}
 function addItem(){
  const n=$('number').value.replace(/\D/g,''); const detectedDigits=n.length; const a=Number($('amount').value||0);
  if(detectedDigits!==2 && detectedDigits!==3){toast('ກະລຸນາປ້ອນເລກ 2 ຫຼື 3 ໂຕ');return}
@@ -919,7 +949,6 @@ function setTheme(t){localStorage.setItem('smartHuayTheme',t);document.body.clas
 
 loadCachedAnimalNames();
 renderCart();
-setTimeout(()=>loadAnimalNames(),300);
 loadCachedAgents();
 setTimeout(()=>loadAgents(),1200);
 $('customer').addEventListener('input',updateConfirmState);updateConfirmState();
