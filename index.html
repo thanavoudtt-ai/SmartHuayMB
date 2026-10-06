@@ -814,7 +814,7 @@ body.dark .primary{color:#fff!important}
 <button class="btn primary" style="width:100%;margin-top:8px" onclick="closeReceipt()">ປິດ</button></div></div>
 
 <script>
-let lottery='ລາວ', cart=[], thaiPos='', pendingNumber='', editingBill=null, selectedAgent=null, agents=[];
+let lottery='ລາວ', cart=[], thaiPos='', pendingNumber='', editingBill=null, selectedAgent=null, agents=[], animalNames={};
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US')+' ກີບ';
 const API_URL='https://script.google.com/macros/s/AKfycbx9K608fXJD7P5b5jakWPNKwQk8IwT5VC1dhFl_5NrQ9oTqpwyFDmtgVd6HmyMsiV4g-g/exec';
 function api(action,params={}){
@@ -831,6 +831,31 @@ function api(action,params={}){
  });
 }
 
+
+const ANIMAL_CACHE_KEY='smartHuayAnimalNamesV1';
+function animalKey(number){
+ const d=String(number||'').replace(/\D/g,'');
+ return d.length>=2?d.slice(-2):'';
+}
+function animalName(number){return animalNames[animalKey(number)]||''}
+function loadAnimalNames(){
+ try{
+   const c=JSON.parse(localStorage.getItem(ANIMAL_CACHE_KEY)||'null');
+   if(c&&typeof c==='object') animalNames=c;
+ }catch(e){}
+ return api('getAnimalNames').then(m=>{
+   if(m&&typeof m==='object'){
+     animalNames=m;
+     try{localStorage.setItem(ANIMAL_CACHE_KEY,JSON.stringify(m))}catch(e){}
+     renderCart();
+   }
+   return animalNames;
+ }).catch(e=>{
+   // นามสัตว์เป็นข้อมูลช่วยขายเท่านั้น: ถ้าโหลดไม่ได้ ระบบขาย/บันทึกบิลยังทำงานต่อ
+   return animalNames;
+ });
+}
+
 $('dateFilter').value=localYMD();
 $('sumStart').value=$('dateFilter').value;$('sumEnd').value=$('dateFilter').value;
 
@@ -843,7 +868,7 @@ function addItem(){
  if(detectedDigits!==2 && detectedDigits!==3){toast('ກະລຸນາປ້ອນເລກ 2 ຫຼື 3 ໂຕ');return}
  if(lottery==='ໄທ'&&detectedDigits===2){pendingNumber=n;$('thaiAmount').value=a||'';thaiPos='';$('thaiModal').classList.add('show');return}
  if(a<=0){toast('ກະລຸນາໃສ່ຈຳນວນເງິນ');return}
- cart.unshift({lottery,digits:detectedDigits,number:n,position:'-',amount:a}); resetEntry(); renderCart();
+ cart.unshift({lottery,digits:detectedDigits,number:n,position:'-',amount:a,animalName:animalName(n)}); resetEntry(); renderCart();
 }
 const AGENT_CACHE_KEY='smartHuayAgentsV1';
 let agentsSyncPromise=null;
@@ -887,17 +912,25 @@ function setTheme(t){localStorage.setItem('smartHuayTheme',t);document.body.clas
 renderCart();
 loadCachedAgents();
 setTimeout(()=>loadAgents(),1200);
+setTimeout(()=>loadAnimalNames(),350);
 $('customer').addEventListener('input',updateConfirmState);updateConfirmState();
 function setFontSize(v,btn){localStorage.setItem('smartHuayFontScale',v);document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
 function initFontSize(){const v=localStorage.getItem('smartHuayFontScale')||'1';document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
 initFontSize();
 setTheme(localStorage.getItem('smartHuayTheme')||'light');
 function markPos(el){[...el.parentElement.children].forEach(x=>x.classList.remove('active'));el.classList.add('active')}
-function addThai(){const a=Number($('thaiAmount').value||0);if(!thaiPos){toast('ກະລຸນາເລືອກ ບົນ / ລ່າງ / ບົນ-ລ່າງ');return}if(a<=0){toast('ກະລຸນາໃສ່ຈຳນວນເງິນ');return}cart.unshift({lottery:'ໄທ',digits:2,number:pendingNumber,position:thaiPos,amount:a});closeThai();resetEntry();renderCart()}
+function addThai(){const a=Number($('thaiAmount').value||0);if(!thaiPos){toast('ກະລຸນາເລືອກ ບົນ / ລ່າງ / ບົນ-ລ່າງ');return}if(a<=0){toast('ກະລຸນາໃສ່ຈຳນວນເງິນ');return}cart.unshift({lottery:'ໄທ',digits:2,number:pendingNumber,position:thaiPos,amount:a,animalName:animalName(pendingNumber)});closeThai();resetEntry();renderCart()}
 function closeThai(){$('thaiModal').classList.remove('show')}
 function resetEntry(){$('number').value='';$('amount').value='';$('number').focus()}
 function updateConfirmState(){const b=$('confirmPurchaseBtn');if(!b)return;const ok=$('customer').value.trim()&&cart.length>0&&selectedAgent;b.disabled=!ok}
-function renderCart(){$('cart').innerHTML=cart.length?cart.map((x,i)=>`<div class="item"><div><div class="num">${x.number}</div><div class="muted">${x.lottery} • ${x.digits} ໂຕ • ${x.position}</div></div><div class="money">${money(x.amount)}</div><button class="x" onclick="cart.splice(${i},1);renderCart()">×</button></div>`).join(''):'<div class="muted">ຍັງບໍ່ມີລາຍການ</div>';$('cartTotal').textContent=money(cart.reduce((s,x)=>s+x.amount,0));updateConfirmState()}
+function renderCart(){
+ $('cart').innerHTML=cart.length?cart.map((x,i)=>{
+   const animal=x.animalName||animalName(x.number);
+   return `<div class="item"><div><div class="num">${x.number}</div><div class="muted">${x.lottery} • ${x.digits} ໂຕ • ${x.position}${animal?` • 🐾 ${esc(animal)}`:''}</div></div><div class="money">${money(x.amount)}</div><button class="x" onclick="cart.splice(${i},1);renderCart()">×</button></div>`;
+ }).join(''):'<div class="muted">ຍັງບໍ່ມີລາຍການ</div>';
+ $('cartTotal').textContent=money(cart.reduce((s,x)=>s+x.amount,0));
+ updateConfirmState()
+}
 let billSubmitting=false;
 function confirmBill(){
  if(billSubmitting)return;
