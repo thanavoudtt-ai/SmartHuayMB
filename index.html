@@ -1,13 +1,9 @@
 <!doctype html>
 <html lang="lo">
 <head>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="smart-huay-icon-512.png">
 <meta charset="utf-8">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="512x512" href="smart-huay-icon-512.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="SMART HUAY">
-<meta name="theme-color" content="#16a34a">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700;800&display=swap');
@@ -661,6 +657,39 @@ body.dark .primary{color:#fff!important}
 }
 </style>
 
+
+<style id="smart-huay-v53-receipt-redesign">
+#receiptModal .sheet{max-width:470px!important;background:#eef6f5!important;padding:14px 12px max(18px,env(safe-area-inset-bottom))!important}
+.purchaseSuccess{text-align:center;padding:4px 8px 13px;color:#0b4f59;animation:successIn .42s ease both}
+.purchaseSuccess .successCheck{width:64px;height:64px;margin:0 auto 7px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#16c86b,#079c54);color:#fff;font-size:38px;font-weight:900;box-shadow:0 8px 24px rgba(9,156,84,.28);animation:checkPop .48s cubic-bezier(.2,.9,.3,1.35) both}
+.purchaseSuccess b{display:block;font-size:22px;line-height:1.15}.purchaseSuccess span{display:block;margin-top:4px;font-size:12px;color:#557478}
+@keyframes checkPop{0%{transform:scale(.35);opacity:0}100%{transform:scale(1);opacity:1}}@keyframes successIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+#receiptModal .receipt{width:100%!important;max-width:420px!important;margin:0 auto!important;border-radius:18px!important;box-shadow:0 12px 34px rgba(4,54,61,.16)!important}
+#receiptModal .rhead{min-height:82px!important;padding:14px 15px 18px!important;background:linear-gradient(135deg,#073f49,#0b4f59 60%,#0d6970)!important;clip-path:none!important;border-radius:18px 18px 0 0!important}
+#receiptModal .rbrand{font-size:19px!important}#receiptModal .rbrandSub{font-size:9px!important}
+#receiptModal .rbillid{max-width:42%!important;font-size:9px!important;padding:6px 7px!important}
+#receiptModal .rmetaCompact{margin:10px 12px 8px!important;padding:10px 11px!important;grid-template-columns:1fr 1fr!important;gap:8px 12px!important;border-radius:12px!important}
+#receiptModal .rmetaCompact .wide{grid-column:1/-1!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important}
+#receiptModal .rtableWrap{margin:0 12px!important;border-radius:11px!important}
+#receiptModal .rtable{font-size:10px!important;table-layout:fixed!important}
+#receiptModal .rtable th,#receiptModal .rtable td{padding:6px 3px!important}
+#receiptModal .rtable th:nth-child(1),#receiptModal .rtable td:nth-child(1){width:9%}
+#receiptModal .rtable th:nth-child(2),#receiptModal .rtable td:nth-child(2){width:29%}
+#receiptModal .rtable th:nth-child(3),#receiptModal .rtable td:nth-child(3){width:34%}
+#receiptModal .rtable th:nth-child(4),#receiptModal .rtable td:nth-child(4){width:28%}
+#receiptModal .rtable .rnum{font-size:14px!important}
+.rtypeTag{display:inline-block;min-width:72px;padding:3px 6px;border-radius:999px;font-weight:800;font-size:9px;line-height:1.2}
+.rtypeTag.lao{background:#ffe0e3;color:#a42632}.rtypeTag.thai{background:#dcedff;color:#185d8a}
+#receiptModal .rsummary.compact{margin:8px 12px 9px!important;padding:10px 12px!important;border-radius:12px!important;background:linear-gradient(135deg,#e6f6f0,#d8f1e8)!important}
+#receiptModal .rsummary.compact>span{font-size:11px!important;font-weight:800!important;color:#345f61!important}
+#receiptModal .rsummary.compact small{font-size:9px!important}#receiptModal .rsummary.compact strong{font-size:23px!important;color:#0b4f59!important}
+#receiptModal .rfootCompact{padding:7px 12px 10px!important;border-bottom:0!important;color:#0b4f59!important}
+#receiptModal .sharegrid{max-width:420px;margin:11px auto 0!important}
+.receipt.capture-quality{width:720px!important;max-width:none!important}
+.receipt.capture-quality .rtable th,.receipt.capture-quality .rtable td{padding:8px 4px!important}.receipt.capture-quality .rtypeTag{font-size:12px!important;min-width:96px!important;padding:4px 8px!important}
+@media(max-width:390px){#receiptModal .sheet{padding-left:8px!important;padding-right:8px!important}#receiptModal .rmetaCompact,#receiptModal .rtableWrap,#receiptModal .rsummary.compact{margin-left:8px!important;margin-right:8px!important}.purchaseSuccess b{font-size:20px}.purchaseSuccess .successCheck{width:58px;height:58px;font-size:34px}}
+</style>
+
 </head>
 <body>
 <div id="toast" class="toast"></div>
@@ -771,7 +800,7 @@ body.dark .primary{color:#fff!important}
 <div class="pay"><button class="btn secondary" onclick="closeSettle()">ຍົກເລີກ</button><button class="btn primary" onclick="confirmSettle()">ຢືນຢັນ</button></div>
 </div></div>
 
-<div id="receiptModal" class="modal"><div class="sheet"><div id="receipt" class="receipt"></div>
+<div id="receiptModal" class="modal"><div class="sheet"><div id="purchaseSuccess" class="purchaseSuccess"><div class="successCheck">✓</div><b>ຊື້ຫວຍສຳເລັດ</b><span>ຂອບໃຈທີ່ໃຊ້ບໍລິການ SMART HUAY</span></div><div id="receipt" class="receipt"></div>
 <div class="sharegrid"><button class="secondary" onclick="copyReceipt()">ຄັດລອກຮູບ</button><button class="secondary" onclick="shareReceipt()">ແຊຣ໌</button><button class="secondary" onclick="saveReceipt()">ບັນທຶກຮູບ</button></div>
 <button class="btn primary" style="width:100%;margin-top:8px" onclick="closeReceipt()">ປິດ</button></div></div>
 
@@ -788,7 +817,7 @@ function api(action,params={}){
    const clean=()=>{clearTimeout(timer);try{delete window[cb]}catch(e){};sc.remove()};
    window[cb]=r=>{clean();r&&r.ok?resolve(r.data):reject(new Error((r&&r.error)||'API error'))};
    sc.onerror=()=>{clean();reject(new Error('ເຊື່ອມຕໍ່ Server ບໍ່ສຳເລັດ'))};
-   timer=setTimeout(()=>{clean();reject(new Error('Server timeout'))},20000);
+   timer=setTimeout(()=>{clean();reject(new Error('Server timeout'))},12000);
    sc.src=API_URL+'?'+q.toString(); document.head.appendChild(sc);
  });
 }
@@ -848,7 +877,7 @@ function setTheme(t){localStorage.setItem('smartHuayTheme',t);document.body.clas
 
 renderCart();
 loadCachedAgents();
-setTimeout(()=>loadAgents(),0);
+setTimeout(()=>loadAgents(),1200);
 $('customer').addEventListener('input',updateConfirmState);updateConfirmState();
 function setFontSize(v,btn){localStorage.setItem('smartHuayFontScale',v);document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
 function initFontSize(){const v=localStorage.getItem('smartHuayFontScale')||'1';document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
@@ -868,20 +897,21 @@ function confirmBill(){
  const p={billId:editingBill,customer,items:cart,paymentMethod:'',debt:false,agentId:selectedAgent.id,agentName:selectedAgent.name,sellerPercent:Number(selectedAgent.percent||0)};
  const fn=editingBill?'updateBill':'saveBill';
  billSubmitting=true;const cb=$('confirmPurchaseBtn');if(cb){cb.disabled=true;cb.textContent='ກຳລັງບັນທຶກ...'}
- api(fn,{payload:p}).then(r=>{billSubmitting=false;if(cb)cb.textContent='ຢືນຢັນການຊື້';const id=r.billId||editingBill;showReceipt(id,customer,cart);editingBill=null;cart=[];$('customer').value='';selectedAgent=null;loadAgentButtons();renderCart();loadBills();loadDebts();}).catch(e=>{billSubmitting=false;if(cb){cb.textContent='ຢືນຢັນການຊື້';updateConfirmState()}toast(e.message)})
+ api(fn,{payload:p}).then(r=>{billSubmitting=false;if(cb)cb.textContent='ຢືນຢັນການຊື້';const id=r.billId||editingBill;const receiptAgent=selectedAgent?selectedAgent.name:'';showReceipt(id,customer,cart,receiptAgent);editingBill=null;cart=[];$('customer').value='';selectedAgent=null;loadAgentButtons();renderCart();}).catch(e=>{billSubmitting=false;if(cb){cb.textContent='ຢືນຢັນການຊື້';updateConfirmState()}toast(e.message)})
 }
-function showReceipt(id,customer,items){
- const now=new Date(), ds=now.toLocaleDateString('en-GB'), ts=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+function showReceipt(id,customer,items,agentName=''){
+ const now=new Date(), ds=now.toLocaleDateString('en-GB'), ts=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
  const stamp=`SMART HUAY • ${ds} • ${ts}`;
  const watermarks=Array.from({length:15},(_,i)=>`<span style="left:${(i%3)*37-10}%;top:${Math.floor(i/3)*20+5}%">${esc(stamp)}</span>`).join('');
- const total=items.reduce((s,x)=>s+Number(x.amount||0),0);
- const rows=items.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.lottery)}</td><td class="rnum">${esc(x.number)}</td><td>${esc(x.position||'-')}</td><td class="ramount">${Number(x.amount).toLocaleString('en-US')}</td></tr>`).join('');
+ const total=items.reduce((sum,x)=>sum+Number(x.amount||0),0);
+ const rows=items.map((x,i)=>{const isThai=String(x.lottery).includes('ໄທ');const type=`${x.lottery} ${x.digits} ໂຕ${x.position&&x.position!=='-'?' • '+x.position:''}`;return `<tr><td>${i+1}</td><td class="rnum">${esc(x.number)}</td><td><span class="rtypeTag ${isThai?'thai':'lao'}">${esc(type)}</span></td><td class="ramount">${Number(x.amount).toLocaleString('en-US')}</td></tr>`}).join('');
  $('receipt').innerHTML=`<div class="rwater">${watermarks}</div><div class="rcontent">
  <div class="rhead"><div class="rlogo"><div class="rlogoMark brand123" aria-label="SMART HUAY"><img src="smart-huay-app-logo.png" alt="SMART HUAY"></div><div><div class="rbrand">SMART HUAY</div><div class="rbrandSub">ບິນລາຍການ</div></div></div><div class="rbillid">${esc(id||'-')}</div></div>
- <div class="rmetaCompact"><div><span>ວັນທີ / ເວລາ</span><b>${ds} • ${ts}</b></div><div><span>ຊື່ລູກຄ້າ</span><b>${esc(customer)}</b></div></div>
- <div class="rtableWrap"><table class="rtable"><thead><tr><th>#</th><th>ປະເພດ</th><th>ລາຍການ</th><th>ບົນ-ລ່າງ</th><th>ຈຳນວນເງິນ</th></tr></thead><tbody>${rows}</tbody></table></div>
- <div class="rsummary compact"><span>${items.length} ລາຍການ</span><div><small>ຍອດລວມ</small><strong>${money(total)}</strong></div></div>
+ <div class="rmetaCompact"><div><span>ວັນທີ / ເວລາ</span><b>${ds} • ${ts}</b></div><div><span>ຈຳນວນ</span><b>${items.length} ລາຍການ</b></div><div class="wide"><div><span>ຊື່ລູກຄ້າ</span><b>${esc(customer)}</b></div><div><span>ແມ່ຫວຍ</span><b>${esc(agentName||'-')}</b></div></div></div>
+ <div class="rtableWrap"><table class="rtable"><thead><tr><th>#</th><th>ເລກຫວຍ</th><th>ປະເພດ</th><th>ຈຳນວນ (ກີບ)</th></tr></thead><tbody>${rows}</tbody></table></div>
+ <div class="rsummary compact"><span>ຍອດເງິນລວມທີ່ຕ້ອງຊຳລະ</span><div><strong>${money(total)}</strong></div></div>
  <div class="rfootCompact">SMART HUAY</div></div>`;
+ const success=$('purchaseSuccess');if(success){success.style.animation='none';void success.offsetWidth;success.style.animation='successIn .42s ease both'}
  $('receiptModal').classList.add('show')
 }
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
@@ -906,7 +936,7 @@ function billCard(b,debt){
  if(debt)return `<div class="billcard" onclick="openBillFromCard('${safe}')"><div class="billhead"><div><b>${esc(b.customer)}</b><div class="muted">${b.createdAt} • ${b.billId}</div><div class="agentTag">ແມ່ຫວຍ: ${esc(b.agentName||'-')} ${b.sellerPercent?('• '+b.sellerPercent+'%'):''}</div></div><div class="money">${money(b.total)}</div></div><div class="muted" style="margin-top:6px">${b.items.map(x=>x.number+' ('+x.position+')').join(', ')}</div><div class="actions"><button class="primary" onclick="event.stopPropagation();settle('${b.billId}')">ຊຳລະແລ້ວ</button></div></div>`;
  return `<div class="billcard" onclick="openBillFromCard('${safe}')"><div class="billhead"><div><b>${esc(b.customer)}</b><div class="muted">${b.createdAt} • ${b.billId}</div><div class="agentTag">ແມ່ຫວຍ: ${esc(b.agentName||'-')} ${b.sellerPercent?('• '+b.sellerPercent+'%'):''}</div></div><div class="money">${money(b.total)}</div></div><div class="muted" style="margin-top:6px">${b.items.map(x=>x.number+' ('+x.position+')').join(', ')}</div><div class="actions"><button class="secondary" onclick="event.stopPropagation();editBill('${safe}')">ແກ້ໄຂ</button><button class="danger" onclick="event.stopPropagation();askDelete('${b.billId}')">ລົບ</button><button class="danger" onclick="event.stopPropagation();askDebt('${b.billId}')">ຕິດໜີ້</button></div></div>`;
 }
-function openBillFromCard(raw){const b=JSON.parse(decodeURIComponent(raw));showReceipt(b.billId,b.customer,b.items)}
+function openBillFromCard(raw){const b=JSON.parse(decodeURIComponent(raw));showReceipt(b.billId,b.customer,b.items,b.agentName||'')}
 function editBill(raw){const b=JSON.parse(decodeURIComponent(raw));editingBill=b.billId;$('customer').value=b.customer;cart=b.items;renderCart();loadAgents(()=>{selectedAgent=agents.find(a=>a.id===(b.agentId||''))||null;loadAgentButtons();updateConfirmState()});document.querySelector('.nav button').click();toast('ກຳລັງແກ້ໄຂ '+b.billId)}
 let confirmAction=null;
 function openConfirm(title,text,okText,action){$('confirmTitle').textContent=title;$('confirmText').textContent=text;$('confirmOkBtn').textContent=okText;confirmAction=action;$('confirmModal').classList.add('show')}
