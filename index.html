@@ -810,11 +810,14 @@ body.dark .primary{color:#fff!important}
 </div></div>
 
 <div id="receiptModal" class="modal"><div class="sheet"><div id="purchaseSuccess" class="purchaseSuccess"><div class="successCheck">✓</div><b>ຊື້ຫວຍສຳເລັດ</b><span>ຂອບໃຈທີ່ໃຊ້ບໍລິການ SMART HUAY</span></div><div id="receipt" class="receipt"></div>
-<div class="sharegrid"><button class="secondary" onclick="copyReceipt()">ຄັດລອກຮູບ</button><button class="secondary" onclick="shareReceipt()">ແຊຣ໌</button><button class="secondary" onclick="saveReceipt()">ບັນທຶກຮູບ</button></div>
-<button class="btn primary" style="width:100%;margin-top:8px" onclick="closeReceipt()">ປິດ</button></div></div>
+<div class="sharegrid" style="grid-template-columns:1fr 1fr"><button class="secondary" onclick="copyReceipt()">ຄັດລອກບິນ</button><button class="btn primary" onclick="closeReceipt()">ປິດ</button></div></div></div>
 
 <script>
-let lottery='ລາວ', cart=[], thaiPos='', pendingNumber='', editingBill=null, selectedAgent=null, agents=[], animalNames={};
+let lottery='ລາວ', cart=[], thaiPos='', pendingNumber='', editingBill=null, selectedAgent=null, agents=[];
+let animalMap={};
+function animalKey(n){const d=String(n||'').replace(/\D/g,'');return d.length>=2?d.slice(-2):d.padStart(2,'0')}
+function animalName(n){return animalMap[animalKey(n)]||'-'}
+function loadAnimalMap(){return api('getAnimalMap').then(m=>{animalMap=m||{};renderCart();return animalMap}).catch(()=>{animalMap={};return animalMap})}
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US')+' ກີບ';
 const API_URL='https://script.google.com/macros/s/AKfycbx9K608fXJD7P5b5jakWPNKwQk8IwT5VC1dhFl_5NrQ9oTqpwyFDmtgVd6HmyMsiV4g-g/exec';
 function api(action,params={}){
@@ -831,31 +834,6 @@ function api(action,params={}){
  });
 }
 
-
-const ANIMAL_CACHE_KEY='smartHuayAnimalNamesV1';
-function animalKey(number){
- const d=String(number||'').replace(/\D/g,'');
- return d.length>=2?d.slice(-2):'';
-}
-function animalName(number){return animalNames[animalKey(number)]||''}
-function loadAnimalNames(){
- try{
-   const c=JSON.parse(localStorage.getItem(ANIMAL_CACHE_KEY)||'null');
-   if(c&&typeof c==='object') animalNames=c;
- }catch(e){}
- return api('getAnimalNames').then(m=>{
-   if(m&&typeof m==='object'){
-     animalNames=m;
-     try{localStorage.setItem(ANIMAL_CACHE_KEY,JSON.stringify(m))}catch(e){}
-     renderCart();
-   }
-   return animalNames;
- }).catch(e=>{
-   // นามสัตว์เป็นข้อมูลช่วยขายเท่านั้น: ถ้าโหลดไม่ได้ ระบบขาย/บันทึกบิลยังทำงานต่อ
-   return animalNames;
- });
-}
-
 $('dateFilter').value=localYMD();
 $('sumStart').value=$('dateFilter').value;$('sumEnd').value=$('dateFilter').value;
 
@@ -868,7 +846,7 @@ function addItem(){
  if(detectedDigits!==2 && detectedDigits!==3){toast('ກະລຸນາປ້ອນເລກ 2 ຫຼື 3 ໂຕ');return}
  if(lottery==='ໄທ'&&detectedDigits===2){pendingNumber=n;$('thaiAmount').value=a||'';thaiPos='';$('thaiModal').classList.add('show');return}
  if(a<=0){toast('ກະລຸນາໃສ່ຈຳນວນເງິນ');return}
- cart.unshift({lottery,digits:detectedDigits,number:n,position:'-',amount:a,animalName:animalName(n)}); resetEntry(); renderCart();
+ cart.unshift({lottery,digits:detectedDigits,number:n,position:'-',amount:a}); resetEntry(); renderCart();
 }
 const AGENT_CACHE_KEY='smartHuayAgentsV1';
 let agentsSyncPromise=null;
@@ -912,25 +890,17 @@ function setTheme(t){localStorage.setItem('smartHuayTheme',t);document.body.clas
 renderCart();
 loadCachedAgents();
 setTimeout(()=>loadAgents(),1200);
-setTimeout(()=>loadAnimalNames(),350);
 $('customer').addEventListener('input',updateConfirmState);updateConfirmState();
 function setFontSize(v,btn){localStorage.setItem('smartHuayFontScale',v);document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
 function initFontSize(){const v=localStorage.getItem('smartHuayFontScale')||'1';document.documentElement.style.setProperty('--font-scale',v);document.querySelectorAll('[data-font]').forEach(x=>x.classList.toggle('active',x.dataset.font===String(v)))}
 initFontSize();
 setTheme(localStorage.getItem('smartHuayTheme')||'light');
 function markPos(el){[...el.parentElement.children].forEach(x=>x.classList.remove('active'));el.classList.add('active')}
-function addThai(){const a=Number($('thaiAmount').value||0);if(!thaiPos){toast('ກະລຸນາເລືອກ ບົນ / ລ່າງ / ບົນ-ລ່າງ');return}if(a<=0){toast('ກະລຸນາໃສ່ຈຳນວນເງິນ');return}cart.unshift({lottery:'ໄທ',digits:2,number:pendingNumber,position:thaiPos,amount:a,animalName:animalName(pendingNumber)});closeThai();resetEntry();renderCart()}
+function addThai(){const a=Number($('thaiAmount').value||0);if(!thaiPos){toast('ກະລຸນາເລືອກ ບົນ / ລ່າງ / ບົນ-ລ່າງ');return}if(a<=0){toast('ກະລຸນາໃສ່ຈຳນວນເງິນ');return}cart.unshift({lottery:'ໄທ',digits:2,number:pendingNumber,position:thaiPos,amount:a});closeThai();resetEntry();renderCart()}
 function closeThai(){$('thaiModal').classList.remove('show')}
 function resetEntry(){$('number').value='';$('amount').value='';$('number').focus()}
 function updateConfirmState(){const b=$('confirmPurchaseBtn');if(!b)return;const ok=$('customer').value.trim()&&cart.length>0&&selectedAgent;b.disabled=!ok}
-function renderCart(){
- $('cart').innerHTML=cart.length?cart.map((x,i)=>{
-   const animal=x.animalName||animalName(x.number);
-   return `<div class="item"><div><div class="num">${x.number}</div><div class="muted">${x.lottery} • ${x.digits} ໂຕ • ${x.position}${animal?` • 🐾 ${esc(animal)}`:''}</div></div><div class="money">${money(x.amount)}</div><button class="x" onclick="cart.splice(${i},1);renderCart()">×</button></div>`;
- }).join(''):'<div class="muted">ຍັງບໍ່ມີລາຍການ</div>';
- $('cartTotal').textContent=money(cart.reduce((s,x)=>s+x.amount,0));
- updateConfirmState()
-}
+function renderCart(){$('cart').innerHTML=cart.length?cart.map((x,i)=>{const pos=x.position&&x.position!=='-'?' • '+x.position:'';const animal=animalName(x.number);return `<div class="item"><div><div class="num">${x.number}</div><div class="muted">${x.lottery}${pos} • ${esc(animal)}</div></div><div class="money">${money(x.amount)}</div><button class="x" onclick="cart.splice(${i},1);renderCart()">×</button></div>`}).join(''):'<div class="muted">ຍັງບໍ່ມີລາຍການ</div>';$('cartTotal').textContent=money(cart.reduce((s,x)=>s+x.amount,0));updateConfirmState()}
 let billSubmitting=false;
 function confirmBill(){
  if(billSubmitting)return;
@@ -941,34 +911,24 @@ function confirmBill(){
  billSubmitting=true;const cb=$('confirmPurchaseBtn');if(cb){cb.disabled=true;cb.textContent='ກຳລັງບັນທຶກ...'}
  api(fn,{payload:p}).then(r=>{billSubmitting=false;if(cb)cb.textContent='ຢືນຢັນການຊື້';const id=r.billId||editingBill;const receiptAgent=selectedAgent?selectedAgent.name:'';showReceipt(id,customer,cart,receiptAgent);editingBill=null;cart=[];$('customer').value='';selectedAgent=null;loadAgentButtons();renderCart();}).catch(e=>{billSubmitting=false;if(cb){cb.textContent='ຢືນຢັນການຊື້';updateConfirmState()}toast(e.message)})
 }
-function showReceipt(id,customer,items,agentName=''){
- const now=new Date(), ds=now.toLocaleDateString('en-GB'), ts=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
- const stamp=`SMART HUAY • ${ds} • ${ts}`;
- const watermarks=Array.from({length:15},(_,i)=>`<span style="left:${(i%3)*37-10}%;top:${Math.floor(i/3)*20+5}%">${esc(stamp)}</span>`).join('');
+function buildReceiptText(id,customer,items){
+ const now=new Date(), ds=now.toLocaleDateString('en-GB'), ts=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
  const total=items.reduce((sum,x)=>sum+Number(x.amount||0),0);
- const rows=items.map((x,i)=>{const isThai=String(x.lottery).includes('ໄທ');const type=`${x.lottery} ${x.digits} ໂຕ`;const position=x.position&&x.position!=='-'?x.position:'-';return `<tr><td>${i+1}</td><td class="rnum">${esc(x.number)}</td><td><span class="rtypeTag ${isThai?'thai':'lao'}">${esc(type)}</span></td><td>${esc(position)}</td><td class="ramount">${Number(x.amount).toLocaleString('en-US')}</td></tr>`}).join('');
- $('receipt').innerHTML=`<div class="rwater">${watermarks}</div><div class="rcontent">
- <div class="rhead"><div class="rlogo"><div class="rlogoMark brand123" aria-label="SMART HUAY"><img src="smart-huay-app-logo.png" alt="SMART HUAY"></div><div><div class="rbrand">SMART HUAY</div><div class="rbrandSub">ບິນລາຍການ</div></div></div><div class="rbillid">${esc(id||'-')}</div></div>
- <div class="rmetaCompact"><div><span>ວັນທີ / ເວລາ</span><b>${ds} • ${ts}</b></div><div><span>ຊື່ລູກຄ້າ</span><b>${esc(customer)}</b></div></div>
- <div class="rtableWrap"><table class="rtable"><thead><tr><th>#</th><th>ເລກຫວຍ</th><th>ປະເພດ</th><th>ບົນ/ລ່າງ</th><th>ຈຳນວນ (ກີບ)</th></tr></thead><tbody>${rows}</tbody></table></div>
- <div class="rsummary compact"><span>ຍອດເງິນລວມທີ່ຕ້ອງຊຳລະ</span><div><strong>${money(total)}</strong></div></div>
- <div class="rfootCompact">SMART HUAY</div></div>`;
+ const rows=items.map((x,i)=>{const pos=x.position&&x.position!=='-'?` (${x.position})`:' (—)';return `${i+1}. ${x.lottery==='ໄທ'?'🇹🇭':'🇱🇦'} ${x.number}${pos} ${Number(x.amount||0).toLocaleString('en-US')} ₭`}).join('\n');
+ return `ວັນທີ: ${ds}\nເວລາ: ${ts}\nລູກຄ້າ: ${customer}\nBill: ${id||'-'}\n────────\n${rows}\n────────\nຍອດລວມ: ${Number(total).toLocaleString('en-US')} ₭`;
+}
+function showReceipt(id,customer,items,agentName=''){
+ const text=buildReceiptText(id,customer,items);
+ $('receipt').dataset.receiptText=text;
+ $('receipt').innerHTML=`<div style="white-space:pre-wrap;font-family:'Noto Sans Lao',sans-serif;font-size:16px;line-height:1.75;padding:4px">${esc(text)}</div>`;
  const success=$('purchaseSuccess');if(success){success.style.animation='none';void success.offsetWidth;success.style.animation='successIn .42s ease both'}
  $('receiptModal').classList.add('show')
 }
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-let html2canvasPromise=null;
-function ensureHtml2Canvas(){
- if(window.html2canvas)return Promise.resolve(window.html2canvas);
- if(html2canvasPromise)return html2canvasPromise;
- html2canvasPromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.async=true;s.onload=()=>resolve(window.html2canvas);s.onerror=()=>reject(new Error('โหลดระบบบันทึกรูปไม่สำเร็จ'));document.head.appendChild(s)});
- return html2canvasPromise;
+async function copyReceipt(){
+ const text=$('receipt').dataset.receiptText||$('receipt').innerText||'';
+ try{await navigator.clipboard.writeText(text);toast('ຄັດລອກບິນແລ້ວ')}
+ catch(e){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('ຄັດລອກບິນແລ້ວ')}
 }
-async function receiptBlob(){await ensureHtml2Canvas();const el=$('receipt');el.classList.add('capture-quality');try{const c=await html2canvas(el,{scale:4,useCORS:true,backgroundColor:'#f9fbfb',logging:false});return await new Promise(r=>c.toBlob(r,'image/png'))}finally{el.classList.remove('capture-quality')}}
-async function copyReceipt(){try{const b=await receiptBlob();await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);toast('ຄັດລອກຮູບແລ້ວ')}catch(e){toast('ເຄື່ອງນີ້ບໍ່ຮອງຮັບການຄັດລອກຮູບ ໃຫ້ໃຊ້ ແຊຣ໌')}
-}
-async function shareReceipt(){try{const b=await receiptBlob();const f=new File([b],'SMART-HUAY.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:'SMART HUAY'});else toast('ເຄື່ອງນີ້ບໍ່ຮອງຮັບ Share')}catch(e){}}
-async function saveReceipt(){const b=await receiptBlob(),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='SMART-HUAY.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function closeReceipt(){$('receiptModal').classList.remove('show')}
 function go(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='today')loadBills();if(id==='debts')loadDebts();if(id==='summary')loadSummary();if(id==='settings')loadAgents(null,true);window.scrollTo(0,0)}
 function loadBills(){api('getBills',{date:$('dateFilter').value}).then(bs=>{let total=0;$('billList').innerHTML=bs.map(b=>{total+=b.total;return billCard(b,false)}).join('')||'<div class="card muted">ບໍ່ມີລາຍການ</div>';$('dayTotal').textContent=money(total)}).catch(e=>toast(e.message))}
@@ -994,5 +954,7 @@ function setSettleMethod(v){settleMethod=v;$('settleCash').classList.toggle('act
 function closeSettle(){$('settleModal').classList.remove('show')}
 function confirmSettle(){api('settleDebt',{billId:settleBillId,method:settleMethod}).then(()=>{closeSettle();toast('ບັນທຶກການຊຳລະແລ້ວ');loadDebts();loadBills()}).catch(e=>toast(e.message))}
 renderCart();
+loadAnimalMap();
+loadAgents();
 </script>
 </body></html>
