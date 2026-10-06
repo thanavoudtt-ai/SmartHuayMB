@@ -712,7 +712,24 @@ body.dark .primary{color:#fff!important}
 .item{grid-template-columns:auto 1fr auto auto!important}.itemOrder{width:30px;height:30px;border-radius:10px;background:#e7f6e4;color:#087a35;display:grid;place-items:center;font-weight:900;font-size:13px}
 body.dark .animalPreview{background:#213325;border-color:#31533a;color:#edf5ee}body.dark .animalPreviewTitle{color:#a9b6ac}body.dark .itemOrder{background:#263b29;color:#72dc77}
 </style>
-</head>
+\n<style id="smart-huay-text-receipt-v1">
+#receiptModal .textReceiptSheet{max-width:470px!important;background:#fff!important;padding:26px 20px 22px!important;border-radius:32px!important}
+#receiptModal .purchaseSuccess{padding:0 8px 18px!important;color:#128447!important}
+#receiptModal .purchaseSuccess .successCheck{width:58px!important;height:58px!important;font-size:34px!important;margin-bottom:10px!important}
+#receiptModal .purchaseSuccess b{font-size:23px!important;color:#118a48!important}
+#receiptModal .purchaseSuccess span{font-size:12px!important;color:#7a8580!important;margin-top:5px!important}
+.textReceiptPreview{background:#f7f8f7;border-radius:22px;padding:10px 18px 0;overflow:hidden;border:1px solid #f0f1f0}
+.textReceiptMeta{display:flex;justify-content:space-between;gap:10px;padding:4px 0 9px;font-size:10px;color:#9aa09c;border-bottom:1px solid #e4e7e5}
+.textReceiptList{max-height:44vh;overflow-y:auto;overscroll-behavior:contain}
+.textReceiptRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #dedfdf}
+.textReceiptRow:last-child{border-bottom:0}.textReceiptMain{display:flex;align-items:flex-start;gap:9px;min-width:0}.textReceiptNo{width:22px;height:22px;min-width:22px;border-radius:50%;background:#e4f4e8;color:#128447;display:grid;place-items:center;font:800 11px Arial,sans-serif;margin-top:1px}
+.textReceiptMain b{display:block;font:800 20px/1.1 Arial,sans-serif;color:#202421}.textReceiptMain small{display:block;margin-top:5px;font-size:11px;color:#8c938f}.textReceiptRow>strong{font:800 16px/1.2 Arial,sans-serif;color:#202421;white-space:nowrap}
+.textReceiptTotal{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px -18px 0;padding:15px 18px;border-top:3px solid #22b765;border-bottom:3px solid #22b765;background:#fff;font-weight:800}.textReceiptTotal strong{font:900 24px/1 Arial,sans-serif;color:#16a15a;white-space:nowrap}
+.textReceiptCustomer{text-align:center;padding:13px 0 15px;color:#929994}.textReceiptCustomer span{display:block;font-size:11px}.textReceiptCustomer b{display:block;color:#5f6762;font-size:14px;margin-top:3px}
+.textReceiptActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.textReceiptActions .btn{min-height:54px;font-size:16px}.textReceiptActions .secondary{background:#eff1f0!important;color:#222!important}
+body.dark #receiptModal .textReceiptSheet{background:#fff!important;color:#202421!important}body.dark .textReceiptPreview{background:#f7f8f7!important;border-color:#f0f1f0!important}body.dark .textReceiptRow,body.dark .textReceiptMeta{border-color:#dedfdf!important}
+@media(max-width:390px){#receiptModal .textReceiptSheet{padding:22px 14px 18px!important;border-radius:28px!important}.textReceiptPreview{padding-left:14px;padding-right:14px}.textReceiptTotal{margin-left:-14px;margin-right:-14px;padding-left:14px;padding-right:14px}.textReceiptRow>strong{font-size:15px}.textReceiptMain b{font-size:19px}}
+</style>\n</head>
 <body>
 <div id="toast" class="toast"></div>
 <div class="app">
@@ -823,9 +840,8 @@ body.dark .animalPreview{background:#213325;border-color:#31533a;color:#edf5ee}b
 <div class="pay"><button class="btn secondary" onclick="closeSettle()">ຍົກເລີກ</button><button class="btn primary" onclick="confirmSettle()">ຢືນຢັນ</button></div>
 </div></div>
 
-<div id="receiptModal" class="modal"><div class="sheet"><div id="purchaseSuccess" class="purchaseSuccess"><div class="successCheck">✓</div><b>ຊື້ຫວຍສຳເລັດ</b><span>ຂອບໃຈທີ່ໃຊ້ບໍລິການ SMART HUAY</span></div><div id="receipt" class="receiptPages"></div>
-<div class="sharegrid"><button class="secondary" onclick="copyReceipt()">ຄັດລອກບິນ</button><button class="secondary" onclick="shareReceipt()">ແຊຣ໌</button><button class="secondary" onclick="saveReceipt()">ບັນທຶກຮູບ</button></div>
-<button class="btn primary" style="width:100%;margin-top:8px" onclick="closeReceipt()">ປິດ</button></div></div>
+<div id="receiptModal" class="modal"><div class="sheet textReceiptSheet"><div id="purchaseSuccess" class="purchaseSuccess"><div class="successCheck">✓</div><b>ບັນທຶກສຳເລັດ</b><span>ກວດສອບບິນກ່ອນຄັດລອກ</span></div><div id="receipt" class="textReceiptPreview"></div>
+<div class="textReceiptActions"><button class="btn primary" onclick="copyReceipt()">✓ ຄັດລອກບິນ</button><button class="btn secondary" onclick="closeReceipt()">ປິດ</button></div></div></div>
 
 <script>
 let lottery='ລາວ', cart=[], thaiPos='', pendingNumber='', editingBill=null, selectedAgent=null, agents=[];
@@ -974,24 +990,14 @@ function confirmBill(){
 }
 let currentReceiptData=null;
 function showReceipt(id,customer,items,agentName=''){
- const now=new Date(), ds=now.toLocaleDateString('en-GB'), ts=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
- const stamp=`SMART HUAY • ${ds} • ${ts}`;
+ const now=new Date(), ds=now.toLocaleDateString('en-GB'), ts=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
  const total=items.reduce((sum,x)=>sum+Number(x.amount||0),0);
- const pageSize=20, pageCount=Math.max(1,Math.ceil(items.length/pageSize));
  currentReceiptData={id,customer,items:items.map(x=>({...x})),agentName,ds,ts,total};
- const pages=[];
- for(let page=0;page<pageCount;page++){
-   const pageItems=items.slice(page*pageSize,(page+1)*pageSize);
-   const watermarks=Array.from({length:15},(_,i)=>`<span style="left:${(i%3)*37-10}%;top:${Math.floor(i/3)*20+5}%">${esc(stamp)}</span>`).join('');
-   const rows=pageItems.map((x,j)=>{const i=page*pageSize+j;const isThai=String(x.lottery).includes('ໄທ');const type=`${x.lottery} ${x.digits} ໂຕ`;const position=x.position&&x.position!=='-'?x.position:'-';return `<tr><td>${i+1}</td><td class="rnum">${esc(x.number)}</td><td><span class="rtypeTag ${isThai?'thai':'lao'}">${esc(type)}</span></td><td>${esc(position)}</td><td class="ramount">${Number(x.amount).toLocaleString('en-US')}</td></tr>`}).join('');
-   pages.push(`<div class="receipt receipt-page" data-page="${page+1}"><div class="rwater">${watermarks}</div><div class="rcontent">
-   <div class="rhead"><div class="rlogo"><div class="rlogoMark brand123" aria-label="SMART HUAY"><img src="smart-huay-app-logo.png" alt="SMART HUAY"></div><div><div class="rbrand">SMART HUAY</div><div class="rbrandSub">ບິນລາຍການ</div></div></div><div style="display:flex;align-items:center"><div><div class="rbillid">${esc(id||'-')}</div><div class="receiptPageInfo">${page+1}/${pageCount}</div></div><div class="receiptPageBadge">${page+1}</div></div></div>
-   <div class="rmetaCompact"><div><span>ວັນທີ / ເວລາ</span><b>${ds} • ${ts}</b></div><div><span>ຊື່ລູກຄ້າ</span><b>${esc(customer)}</b></div></div>
-   <div class="rtableWrap"><table class="rtable"><thead><tr><th>#</th><th>ເລກຫວຍ</th><th>ປະເພດ</th><th>ບົນ/ລ່າງ</th><th>ຈຳນວນ (ກີບ)</th></tr></thead><tbody>${rows}</tbody></table></div>
-   <div class="rsummary compact"><span>ຍອດເງິນລວມທີ່ຕ້ອງຊຳລະ</span><div><strong>${money(total)}</strong></div></div>
-   <div class="rfootCompact">SMART HUAY</div></div></div>`);
- }
- $('receipt').innerHTML=pages.join('');
+ const rows=items.map((x,i)=>{
+   const pos=x.position&&x.position!=='-'?` • ${esc(x.position)}`:'';
+   return `<div class="textReceiptRow"><div class="textReceiptMain"><span class="textReceiptNo">${i+1}</span><div><b>${esc(x.number)}</b><small>${esc(x.lottery)}${pos}</small></div></div><strong>${Number(x.amount||0).toLocaleString('en-US')} ₭</strong></div>`;
+ }).join('');
+ $('receipt').innerHTML=`<div class="textReceiptMeta"><span>${esc(id||'-')}</span><span>${ds} • ${ts}</span></div><div class="textReceiptList">${rows}</div><div class="textReceiptTotal"><span>ລວມເງິນ:</span><strong>${Number(total).toLocaleString('en-US')} ₭</strong></div><div class="textReceiptCustomer"><span>ລູກຄ້າ</span><b>${esc(customer||'-')}</b></div>`;
  const success=$('purchaseSuccess');if(success){success.style.animation='none';void success.offsetWidth;success.style.animation='successIn .42s ease both'}
  $('receiptModal').classList.add('show')
 }
