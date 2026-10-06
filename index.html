@@ -1025,6 +1025,7 @@ function receiptCopyText(){
  d.items.forEach((x,i)=>{const pos=x.position&&x.position!=='-'?` • ${x.position}`:'';lines.push(`${i+1}. ${x.number} • ${x.lottery}${pos} • ${Number(x.amount||0).toLocaleString('en-US')} ກີບ`)});
  lines.push('',`ລວມ: ${money(d.total)}`);return lines.join('\n');
 }
+async 
 async function copyReceipt(){try{await navigator.clipboard.writeText(receiptCopyText());toast('ຄັດລອກບິນຄົບທຸກລາຍການແລ້ວ')}catch(e){toast('ຄັດລອກບິນບໍ່ສຳເລັດ')}}
 async function shareReceipt(){try{const bs=await receiptBlobs();const files=bs.map((b,i)=>new File([b],`SMART-HUAY-${i+1}.png`,{type:'image/png'}));if(navigator.canShare&&navigator.canShare({files}))await navigator.share({files,title:'SMART HUAY'});else toast('ເຄື່ອງນີ້ບໍ່ຮອງຮັບ Share ຫຼາຍຮູບ')}catch(e){toast('ແຊຣ໌ບິນບໍ່ສຳເລັດ')}}
 async function saveReceipt(){const bs=await receiptBlobs();bs.forEach((b,i)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`SMART-HUAY-${i+1}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)})}
